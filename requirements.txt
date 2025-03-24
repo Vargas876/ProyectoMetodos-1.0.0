@@ -1,0 +1,6 @@
+Flask>=3.0.0
+numpy>=1.22.0
+sympy>=1.10.0
+plotly>=5.10.0
+matplotlib>=3.5.0
+scipy>=1.8.0
