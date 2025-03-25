@@ -5,115 +5,239 @@ from sympy.parsing.sympy_parser import (
     implicit_multiplication_application,
     convert_xor
 )
-from app.numeric_methods import Simpson as simpson
-from app.numeric_methods import Trapecio as trapecio
-from app.numeric_methods import GaussSeidel as gauss
 from app.numeric_methods import Jacobi as jacobi
-from app.numeric_methods import bisection
-from app.numeric_methods import Broyden as broyden
-from app.numeric_methods import fixed_point
-from app.numeric_methods import newton_raphson
-from app.numeric_methods import secant
-from app.util import equation
 import numpy as np
 import plotly
 import plotly.graph_objs as go
 import json
 import sympy as sp
-import re
 import logging
 
-# Definir las transformaciones incluyendo 'convert_xor'
-transformations = (
-    standard_transformations +
-    (implicit_multiplication_application,) +
-    (convert_xor,)
-)
-# Configuración del logger
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
 def parse_equations(equations, variables):
+    """
+    Parsea un sistema de ecuaciones lineales de manera robusta.
+    
+    Args:
+        equations (list): Lista de ecuaciones en formato string
+        variables (list): Lista de nombres de variables
+    
+    Returns:
+        tuple: Matriz de coeficientes A y vector de términos independientes b
+    """
     A = []
     b = []
     var_symbols = sp.symbols(variables)
+    
     for eq in equations:
         try:
-            lhs, rhs = eq.split('=')
-            sympy_eq = sp.Eq(sp.sympify(lhs), sp.sympify(rhs))
-            A.append([float(sympy_eq.lhs.coeff(var)) for var in var_symbols])
-            b.append(float(sympy_eq.rhs))
+            # Ensure the equation contains '='
+            if '=' not in eq:
+                raise ValueError(f"Equation must contain '=': {eq}")
+            
+            # Split the equation
+            parts = eq.split('=')
+            if len(parts) != 2:
+                raise ValueError(f"Invalid equation format: {eq}")
+            
+            lhs, rhs = parts[0].strip(), parts[1].strip()
+            
+            # Convert the right side to a numeric value
+            b_val = sp.sympify(rhs).evalf()
+            b.append(float(b_val))
+            
+            # Create a SymPy expression for the left side
+            lhs_expr = sp.sympify(lhs)
+            
+            # Extract coefficients
+            row = []
+            for var in var_symbols:
+                coeff = lhs_expr.coeff(var)
+                row.append(float(coeff if coeff is not None else 0))
+            
+            A.append(row)
+        
         except Exception as e:
-            logging.error("Error al analizar la ecuación '%s': %s", eq, str(e))
+            logger.error(f"Error processing equation {eq}: {e}")
             raise
+    
     return np.array(A), np.array(b)
 
-def controller_jacobi(data):
-    logging.debug("Datos recibidos: %s", data)
+def generate_jacobi_plot(iteration_history, variables):
+    """
+    Genera una visualización detallada de la convergencia del método de Jacobi.
     
-    if not data or 'equations' not in data or 'variables' not in data or 'initial_guess' not in data or 'iterations' not in data:
-        logging.error("Faltan campos requeridos: equations, variables, initial_guess, iterations")
-        return jsonify({'error': 'Faltan campos requeridos: equations, variables, initial_guess, iterations'}), 400
+    Args:
+        iteration_history (list): Historial de iteraciones
+        variables (list): Nombres de las variables
+    
+    Returns:
+        plotly.graph_objs.Figure: Figura de Plotly con la visualización
+    """
+    # Paleta de colores para las variables
+    color_palette = [
+        'rgb(31, 119, 180)',   # Azul
+        'rgb(255, 127, 14)',   # Naranja
+        'rgb(44, 160, 44)',    # Verde
+        'rgb(214, 39, 40)',    # Rojo
+        'rgb(148, 103, 189)'   # Púrpura
+    ]
+    
+    # Preparar trazas para cada variable
+    traces = []
+    iterations_range = list(range(len(iteration_history)))
+    
+    for i in range(len(variables)):
+        # Valores de la variable en cada iteración
+        var_values = [entry['x'][i] for entry in iteration_history]
+        
+        # Traza principal con línea y marcadores
+        trace = go.Scatter(
+            x=iterations_range,
+            y=var_values,
+            mode='lines+markers',
+            name=variables[i],
+            line=dict(
+                color=color_palette[i % len(color_palette)], 
+                width=3
+            ),
+            marker=dict(
+                size=10,
+                color=color_palette[i % len(color_palette)],
+                symbol='circle',
+                line=dict(width=1, color='white')
+            ),
+            hovertemplate=(
+                f'<b>{variables[i]}</b><br>' +
+                'Iteración: %{x}<br>' +
+                'Valor: %{y:.6f}<extra></extra>'
+            )
+        )
+        traces.append(trace)
+    
+    layout = go.Layout(
+        title=dict(
+            text='Convergencia del Método de Jacobi',
+            font=dict(size=20)
+        ),
+        xaxis=dict(
+            title='Iteración',
+            gridcolor='rgb(230, 230, 230)',
+            showgrid=True
+        ),
+        yaxis=dict(
+            title='Valor de las Variables',
+            gridcolor='rgb(230, 230, 230)',
+            showgrid=True
+        ),
+        plot_bgcolor='rgb(250, 250, 250)',
+        paper_bgcolor='rgb(250, 250, 250)',
+        legend=dict(
+            x=1.1,
+            y=1,
+            bgcolor='rgba(255, 255, 255, 0.7)',
+            bordercolor='rgba(0, 0, 0, 0.1)',
+            borderwidth=1
+        ),
+        hovermode='closest',
+        margin=dict(l=75, r=100, b=50, t=80)
+    )
+    
+    # Combinar todas las trazas
+    fig = go.Figure(data=traces, layout=layout)
+    
+    # Anotaciones con información adicional
+    annotations = []
+    
+    # Información de convergencia
+    last_iter = iteration_history[-1]
+    convergence_text = f"Solución Final:<br>"
+    for i, var in enumerate(variables):
+        convergence_text += f"{var}: {last_iter['x'][i]:.6f}<br>"
+    
+    annotations.append(dict(
+        xref='paper',
+        yref='paper',
+        x=1.05,
+        y=0.2,
+        text=convergence_text,
+        showarrow=False,
+        font=dict(size=12),
+        align='left',
+        bordercolor='black',
+        borderwidth=1,
+        borderpad=4,
+        bgcolor='rgba(255, 255, 255, 0.7)'
+    ))
+    
+    # Añadir anotaciones al diseño
+    layout.update(annotations=annotations)
+    
+    return fig
+
+def controller_jacobi(data):
+    """
+    Controlador para el método de Jacobi con mejoras en registro y manejo de errores.
+    
+    Args:
+        data (dict): Datos de entrada para el método de Jacobi
+    
+    Returns:
+        flask.Response: Respuesta JSON con resultados y gráfica
+    """
+    logger.debug(f"Datos recibidos: {data}")
+    
+    # Validación de campos requeridos
+    required_fields = ['equations', 'variables', 'initial_guess', 'iterations']
+    for field in required_fields:
+        if field not in data:
+            logger.error(f"Falta el campo requerido: {field}")
+            return jsonify({'error': f'Falta el campo requerido: {field}'}), 400
 
     try:
         equations = data['equations']
         variables = data['variables']
         initial_guess = data['initial_guess']
-        max_iter = int(data['iterations'])
         
-        logging.debug("Ecuaciones: %s", equations)
-        logging.debug("Variables: %s", variables)
-        logging.debug("Vector inicial x0: %s", initial_guess)
-        logging.debug("Número máximo de iteraciones: %d", max_iter)
+        logger.info(f"Resolviendo sistema de {len(equations)} ecuaciones")
+        logger.debug(f"Ecuaciones: {equations}")
+        logger.debug(f"Variables: {variables}")
+        logger.debug(f"Vector inicial x0: {initial_guess}")
 
+        # Parsear ecuaciones y preparar matrices
         A, b = parse_equations(equations, variables)
         x0 = np.array(initial_guess)
+        max_iter = int(data['iterations'])
         
-        logging.debug("Matriz A: %s", A)
-        logging.debug("Vector b: %s", b)
-
+        # Ejecutar método de Jacobi
         root, converged, iterations, iteration_history = jacobi.jacobi_method(A, b, x0, max_iter)
         
+        # Validaciones de resultados
         if root is None or iteration_history is None:
-            logging.error("El método Jacobi devolvió un valor None")
-            return jsonify({'error': 'El método Jacobi devolvió un valor None'}), 500
+            logger.error("El método de Jacobi no convergió o devolvió un valor None")
+            return jsonify({
+                'error': 'El método de Jacobi no logró encontrar una solución',
+                'converged': False
+            }), 400
 
-        logging.debug("Raíz encontrada: %s", root)
-        logging.debug("Convergencia: %s", converged)
-        logging.debug("Número de iteraciones: %d", iterations)
-        logging.debug("Historial de iteraciones: %s", iteration_history)
-
-        # Preparar los datos para la gráfica
-        iterations_range = list(range(len(iteration_history)))
-        traces = []
-        for i in range(len(root)):
-            trace = go.Scatter(
-                x=iterations_range,
-                y=[entry['x'][i] for entry in iteration_history],
-                mode='lines+markers',
-                name=f'Variable {i+1}',
-                marker=dict(size=10)
-            )
-            traces.append(trace)
-
-        layout = go.Layout(
-            title="Convergencia del Método Jacobi",
-            xaxis=dict(title='Iteración'),
-            yaxis=dict(title='Valor de la Variable'),
-            plot_bgcolor='#f0f0f0'
-        )
-
-        fig = go.Figure(data=traces, layout=layout)
+        # Generar gráfica de convergencia
+        fig = generate_jacobi_plot(iteration_history, variables)
         graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
+        # Preparar respuesta
         response = {
-            'root': [round(val, 6) for val in root],
+            'solution': {var: round(float(root[i]), 6) for i, var in enumerate(variables)},
             'converged': converged,
             'iterations': iterations,
             'iteration_history': iteration_history,
             'plot_json': graphJSON
         }
-        logging.debug("Respuesta enviada: %s", response)
+        
+        logger.info(f"Método de Jacobi completado. Convergencia: {converged}")
         return jsonify(response)
+    
     except Exception as e:
-        logging.error("An error occurred: %s", str(e))
+        logger.error(f"Error en el método de Jacobi: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500

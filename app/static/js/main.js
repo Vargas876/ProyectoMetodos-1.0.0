@@ -670,12 +670,19 @@ class CalculatorApp {
                     this.renderPlot(response.plot_json, method);
                 }
             } else if (["jacobi", "gauss_seidel", "broyden"].includes(method)) {
-                if (response.solution) {
-                    this.displaySystemResults(response);
-                }
-                if (response.plot_json) {
-                    this.renderPlot(response.plot_json, method);
-                }
+                 // *** Muestra la tabla principal de resultados de sistema
+                    if (response.solution) {
+                        this.displaySystemResults(response);
+                    }
+                    // *** Muestra la tabla de iteraciones (si existe iteration_history)
+                    if (response.iteration_history && response.iteration_history.length > 0) {
+                        // En este caso, pasamos también la solución (variables) para formatear las columnas
+                        this.displayIterationHistory(response.iteration_history, response.solution);
+                    }
+                    // *** Gráfica, si aplica
+                    if (response.plot_json) {
+                        this.renderPlot(response.plot_json, method);
+                    }
             } else {
                 if (response.root !== undefined) {
                     this.displayMainResults(response);

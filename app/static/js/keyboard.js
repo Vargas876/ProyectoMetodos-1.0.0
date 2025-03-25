@@ -6,6 +6,9 @@
 class EnhancedCalculatorApp {
     constructor() {
       try {
+           // Initialize the map to store all MathQuill fields
+           this.allMathFields = new Map();
+           
         // Initialize keyboard layout
         this.initializeKeyboardLayout();
         

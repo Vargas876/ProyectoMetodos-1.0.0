@@ -1,4 +1,4 @@
-from app.routes import parse_equation
+from app.util.equation import parse_equation
 
 # Prueba con la ecuación LaTeX
 #  # (4-((1)/(2 x))-((2 x^(2))/(7)))^(((2)/(3)))
