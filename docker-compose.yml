@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  bisection:
+    build:
+      context: ./bisection/
+    ports:
+      - "5001:5000"
+    environment:
+      - FLASK_ENV=production
+
+  fixed_point:
+    build:
+      context: ./fixed_point
+    ports:
+      - "5002:5000"
+    environment:
+      - FLASK_ENV=production
+
+  gauss_seidel:
+    build:
+      context: ./gauss_seidel
+    ports:
+      - "5003:5000"
+    environment:
+      - FLASK_ENV=production
+
+  jacobi:
+    build:
+      context: ./jacobi
+    ports:
+      - "5004:5000"
+    environment:
+      - FLASK_ENV=production
+
+  newton_raphson:
+    build:
+      context: ./newton_raphson
+    ports:
+      - "5005:5000"
+    environment:
+      - FLASK_ENV=production
+
+  secant:
+    build:
+      context: ./secant
+    ports:
+      - "5006:5000"
+    environment:
+      - FLASK_ENV=production
+
+# Red opcional para comunicación entre servicios
+networks:
+  default:
+    driver: bridge
