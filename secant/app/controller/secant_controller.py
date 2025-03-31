@@ -5,14 +5,6 @@ from sympy.parsing.sympy_parser import (
     implicit_multiplication_application,
     convert_xor
 )
-from app.numeric_methods import Simpson as simpson
-from app.numeric_methods import Trapecio as trapecio
-from app.numeric_methods import GaussSeidel as gauss
-from app.numeric_methods import Jacobi as jacobi
-from app.numeric_methods import bisection
-from app.numeric_methods import Broyden as broyden
-from app.numeric_methods import fixed_point
-from app.numeric_methods import newton_raphson
 from app.numeric_methods import secant
 from app.util import equation as eq
 import numpy as np
