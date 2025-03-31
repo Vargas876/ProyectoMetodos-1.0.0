@@ -376,39 +376,51 @@ def compute_initial_jacobian(equations, variables, x0):
     return np.array(J, dtype=float)
 
 
-def parse_system(equations, variables):
+def parse_equations(equations, variables):
     """
-    Convierte una lista de ecuaciones en formato de texto a una matriz de coeficientes y un vector b.
+    Parsea un sistema de ecuaciones lineales de manera más robusta.
+    
+    Args:
+        equations (list): Lista de ecuaciones en formato string
+        variables (list): Lista de nombres de variables
+    
+    Returns:
+        tuple: Matriz de coeficientes A y vector de términos independientes b
     """
-    try:
-        num_eq = len(equations)
-        num_var = len(variables)
-        
-        if num_eq != num_var:
-            raise ValueError("El número de ecuaciones debe ser igual al número de variables.")
-        
-        A = np.zeros((num_eq, num_var), dtype=float)
-        b_vector = np.zeros(num_eq, dtype=float)
-        
-        for i, eq in enumerate(equations):
+    A = []
+    b = []
+    var_symbols = sp.symbols(variables)
+    
+    for eq in equations:
+        try:
+            # Ensure the equation contains '='
             if '=' not in eq:
-                raise ValueError(f"La ecuación '{eq}' no contiene un signo de igual '='.")
+                raise ValueError(f"Equation must contain '=': {eq}")
             
-            lhs, rhs = eq.split('=')
+            # Split the equation
+            parts = eq.split('=')
+            if len(parts) != 2:
+                raise ValueError(f"Invalid equation format: {eq}")
             
-            # Convertir el lado derecho en un número usando SymPy para manejar fracciones
-            rhs_expr = sp.sympify(rhs.strip())
-            b_vector[i] = float(rhs_expr.evalf())
+            lhs, rhs = parts[0].strip(), parts[1].strip()
             
-            # Parsear el lado izquierdo
-            expr = sp.sympify(preprocess_equation(lhs))
-            for j, var in enumerate(variables):
-                coeff = expr.coeff(sp.Symbol(var))
-                A[i][j] = float(coeff)
+            # Convert the right side to a numeric value
+            b_val = sp.sympify(rhs).evalf()
+            b.append(float(b_val))
+            
+            # Create a SymPy expression for the left side
+            lhs_expr = sp.sympify(lhs)
+            
+            # Extract coefficients
+            row = []
+            for var in var_symbols:
+                coeff = lhs_expr.coeff(var)
+                row.append(float(coeff if coeff is not None else 0))
+            
+            A.append(row)
         
-        logger.info(f"Matriz A: {A}")
-        logger.info(f"Vector b: {b_vector}")
-        
-        return A.tolist(), b_vector.tolist()
-    except Exception as e:
-        raise ValueError(f"Error al parsear el sistema de ecuaciones: {str(e)}")
+        except Exception as e:
+            print(f"Error processing equation {eq}: {e}")
+            raise
+    
+    return np.array(A), np.array(b)

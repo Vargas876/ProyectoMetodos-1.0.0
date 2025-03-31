@@ -14,7 +14,7 @@ from app.numeric_methods import Broyden as broyden
 from app.numeric_methods import fixed_point
 from app.numeric_methods import newton_raphson
 from app.numeric_methods import secant
-from app.util import equation
+from app.util import equation as eq
 import numpy as np
 import plotly
 import plotly.graph_objs as go
@@ -32,54 +32,6 @@ transformations = (
 # Configuración del logger
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-def parse_equations(equations, variables):
-    """
-    Parsea un sistema de ecuaciones lineales de manera más robusta.
-    
-    Args:
-        equations (list): Lista de ecuaciones en formato string
-        variables (list): Lista de nombres de variables
-    
-    Returns:
-        tuple: Matriz de coeficientes A y vector de términos independientes b
-    """
-    A = []
-    b = []
-    var_symbols = sp.symbols(variables)
-    
-    for eq in equations:
-        try:
-            # Ensure the equation contains '='
-            if '=' not in eq:
-                raise ValueError(f"Equation must contain '=': {eq}")
-            
-            # Split the equation
-            parts = eq.split('=')
-            if len(parts) != 2:
-                raise ValueError(f"Invalid equation format: {eq}")
-            
-            lhs, rhs = parts[0].strip(), parts[1].strip()
-            
-            # Convert the right side to a numeric value
-            b_val = sp.sympify(rhs).evalf()
-            b.append(float(b_val))
-            
-            # Create a SymPy expression for the left side
-            lhs_expr = sp.sympify(lhs)
-            
-            # Extract coefficients
-            row = []
-            for var in var_symbols:
-                coeff = lhs_expr.coeff(var)
-                row.append(float(coeff if coeff is not None else 0))
-            
-            A.append(row)
-        
-        except Exception as e:
-            print(f"Error processing equation {eq}: {e}")
-            raise
-    
-    return np.array(A), np.array(b)
 
 def generate_gauss_seidel_plot(iteration_history, variables):
     """
@@ -226,7 +178,7 @@ def controller_gauss(data):
         logger.debug(f"Vector inicial x0: {initial_guess}")
 
         # Parsear ecuaciones y preparar matrices
-        A, b = parse_equations(equations, variables)
+        A, b = eq.parse_equations(equations, variables)
         x0 = np.array(initial_guess)
         max_iter = int(data['iterations'])
         
