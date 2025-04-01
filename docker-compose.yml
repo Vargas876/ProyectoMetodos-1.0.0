@@ -3,47 +3,44 @@ version: '3.8'
 services:
   bisection:
     build:
-      context: ./bisection/
+      context: ./microservices/bisection/
     ports:
       - "5001:5000"
     environment:
       - FLASK_ENV=production
 
-  fixed_point:
+  newton_raphson:
     build:
-      context: ./fixed_point
+      context: ./microservices/newton_raphson
     ports:
       - "5002:5000"
     environment:
       - FLASK_ENV=production
-
-  gauss_seidel:
+  secant:
     build:
-      context: ./gauss_seidel
+      context: ./microservices/secant
     ports:
       - "5003:5000"
     environment:
       - FLASK_ENV=production
-
-  jacobi:
+  fixed_point:
     build:
-      context: ./jacobi
+      context: ./microservices/fixed_point
     ports:
       - "5004:5000"
     environment:
       - FLASK_ENV=production
-
-  newton_raphson:
+  jacobi:
     build:
-      context: ./newton_raphson
+      context: ./microservices/jacobi
     ports:
       - "5005:5000"
     environment:
       - FLASK_ENV=production
 
-  secant:
+  gauss_seidel:
     build:
-      context: ./secant
+      context: ./microservices/gauss_seidel
     ports:
       - "5006:5000"
     environment:
