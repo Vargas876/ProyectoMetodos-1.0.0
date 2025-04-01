@@ -178,7 +178,24 @@ class CalculatorApp {
     // Actualiza la visualización de los campos según el método seleccionado
     handleMethodChange(event) {
         const selectedMethod = event.target.value;
-
+        const methodPorts = {
+            "bisection": 5001,
+            "newton": 5002,
+            "secant": 5003,
+            "fixed_point": 5004,
+            "jacobi": 5005,
+            "gauss_seidel": 5006
+        };
+        
+        const port = methodPorts[selectedMethod] || 5004;
+        const currentUrl = new URL(window.location.href);
+    
+        if (currentUrl.port !== port.toString()) {
+            currentUrl.port = port;
+            
+            console.log(`Redirigiendo a: ${currentUrl.href}`);
+            window.location.href = currentUrl.href;
+        }
         // Reiniciar la propiedad "required" en todos los inputs
         this.elements.form.querySelectorAll("input").forEach((input) => (input.required = false));
 
