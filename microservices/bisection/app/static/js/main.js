@@ -853,27 +853,47 @@ class CalculatorApp {
 
     handleError(error) {
         console.error("Error en la aplicación:", error);
-        let userMessage = "Ha ocurrido un error inesperado.";
-        if (error.message.includes("servidor")) {
-            userMessage = error.message;
-        } else if (error.message.includes("gráfico")) {
+        let userMessage = "";
+        
+        // Check specifically for the bisection interval validation error
+        if (error.message.includes("límite inferior (a) debe ser menor que el superior (b)")) {
+            userMessage = "Error: El límite inferior (a) debe ser menor que el superior (b)";
+        }
+        // Check for the "no sign change" error in bisection method
+        else if (error.message.includes("función no cambia de signo") || 
+                error.message.includes("no sign change") || 
+                error.message.includes("intervalo dado")) {
+            userMessage = "Error: La función no cambia de signo en el intervalo dado. Esto puede ocurrir por dos razones principales:\n\n" + 
+                         "1. El intervalo es demasiado grande y contiene un número par de raíces\n" + 
+                         "2. La función no tiene raíces reales en este intervalo\n\n" + 
+                         "Sugerencia: Intente visualizar la función primero para identificar donde cruza el eje X, o divida el intervalo en secciones más pequeñas.";
+        }
+        // Handle other types of errors
+        else if (error.message.includes("gráfico")) {
             userMessage = "No se pudo generar el gráfico. Los resultados numéricos están disponibles.";
         } else if (error.message.includes("ecuación") || error.message.includes("función g(x)")) {
             userMessage = "La ecuación o función ingresada no es válida. Por favor, verifíquela.";
+        } else {
+            userMessage = error.message || "Ha ocurrido un error inesperado.";
         }
+        
         this.showError(userMessage);
     }
-
     showError(message) {
         this.elements.resultTable.innerHTML = "";
         this.elements.plotHtmlContainer.innerHTML = "";
         this.elements.resultsDiv.style.display = "none";
         const errorDiv = document.createElement("div");
         errorDiv.className = "alert alert-danger alert-dismissible fade show mt-3";
+        
+        // Replace newlines with <br> tags for proper HTML display
+        const formattedMessage = message.replace(/\n/g, '<br>');
+        
         errorDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      `;
+            ${formattedMessage}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
         this.elements.form.insertBefore(errorDiv, this.elements.form.firstChild);
     }
 
