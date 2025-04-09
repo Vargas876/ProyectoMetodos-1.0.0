@@ -179,25 +179,6 @@ class CalculatorApp {
     handleMethodChange(event) {
         const selectedMethod = event.target.value;
 
-        const methodPorts = {
-            "bisection": 5001,
-            "newton": 5002,
-            "secant": 5003,
-            "fixed_point": 5004,
-            "jacobi": 5005,
-            "gauss_seidel": 5006
-        };
-        
-        const port = methodPorts[selectedMethod] || 5002;
-        const currentUrl = new URL(window.location.href);
-    
-        if (currentUrl.port !== port.toString()) {
-            currentUrl.port = port;
-            
-            console.log(`Redirigiendo a: ${currentUrl.href}`);
-            window.location.href = currentUrl.href;
-        }
-
         // Reiniciar la propiedad "required" en todos los inputs
         this.elements.form.querySelectorAll("input").forEach((input) => (input.required = false));
 
@@ -852,32 +833,141 @@ class CalculatorApp {
         return tbody;
     }
 
-    handleError(error) {
-        console.error("Error en la aplicación:", error);
-        let userMessage = "Ha ocurrido un error inesperado.";
-        if (error.message.includes("servidor")) {
-            userMessage = error.message;
-        } else if (error.message.includes("gráfico")) {
-            userMessage = "No se pudo generar el gráfico. Los resultados numéricos están disponibles.";
-        } else if (error.message.includes("ecuación") || error.message.includes("función g(x)")) {
-            userMessage = "La ecuación o función ingresada no es válida. Por favor, verifíquela.";
-        }
-        this.showError(userMessage);
+  // Enhanced error handling for handleError method
+handleError(error) {
+    console.error("Error en la aplicación:", error);
+    let userMessage = "";
+    
+    // Organized category-based error detection
+    
+    // Interval errors
+    if (error.message.includes("límite inferior") || 
+        error.message.includes("a debe ser menor") || 
+        error.message.includes("a >= b")) {
+        userMessage = "Error de intervalo: El límite inferior (a) debe ser menor que el superior (b).";
     }
-
-    showError(message) {
-        this.elements.resultTable.innerHTML = "";
-        this.elements.plotHtmlContainer.innerHTML = "";
-        this.elements.resultsDiv.style.display = "none";
-        const errorDiv = document.createElement("div");
-        errorDiv.className = "alert alert-danger alert-dismissible fade show mt-3";
-        errorDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      `;
-        this.elements.form.insertBefore(errorDiv, this.elements.form.firstChild);
+    // Function sign change errors (bisection method)
+    else if (error.message.includes("no cambia de signo") || 
+            error.message.includes("no sign change") || 
+            error.message.includes("intervalo dado")) {
+        userMessage = "Error en el método de bisección: La función no cambia de signo en el intervalo dado.\n\n" + 
+                     "Posibles causas:\n" + 
+                     "• El intervalo contiene un número par de raíces\n" + 
+                     "• La función no tiene raíces reales en este intervalo\n\n" + 
+                     "Sugerencias: Visualice la función para identificar cruces con el eje X o pruebe con intervalos más pequeños.";
     }
+    // Syntax errors in equations
+    else if (error.message.includes("sintaxis") || 
+             error.message.includes("syntax") || 
+             error.message.includes("ecuación") || 
+             error.message.includes("inválida")) {
+        userMessage = "Error de sintaxis: La ecuación ingresada contiene errores.\n\n" +
+                     "Verifique:\n" +
+                     "• Paréntesis balanceados\n" +
+                     "• Operadores matemáticos correctos\n" +
+                     "• Variables definidas adecuadamente";
+    }
+    // Convergence errors
+    else if (error.message.includes("converge") || 
+             error.message.includes("diverge")) {
+        userMessage = "Error de convergencia: El método no converge con los parámetros proporcionados.\n\n" +
+                     "Sugerencias:\n" +
+                     "• Aumente el número máximo de iteraciones\n" +
+                     "• Pruebe con otros valores iniciales\n" +
+                     "• Considere un método numérico diferente";
+    }
+    // Function definition errors (for g(x) in fixed point)
+    else if (error.message.includes("g(x)") || 
+             error.message.includes("gFunction")) {
+        userMessage = "Error en la definición de g(x): La función de punto fijo no es válida.\n\n" +
+                     "Verificar que:\n" +
+                     "• Contenga la variable 'x'\n" +
+                     "• Tenga una sintaxis correcta\n" +
+                     "• Cumpla los requisitos para convergencia de punto fijo";
+    }
+    // System of equations errors
+    else if (error.message.includes("sistema") || 
+             error.message.includes("variables") || 
+             error.message.includes("ecuaciones")) {
+        userMessage = "Error en el sistema de ecuaciones:\n\n" +
+                     "Verificar que:\n" +
+                     "• El número de ecuaciones sea igual al número de variables\n" +
+                     "• Las variables estén correctamente definidas\n" +
+                     "• El vector de valores iniciales tenga la dimensión correcta";
+    }
+    // Division by zero
+    else if (error.message.includes("división por cero") || 
+             error.message.includes("division by zero") || 
+             error.message.includes("divide by zero")) {
+        userMessage = "Error matemático: División por cero detectada.\n\n" +
+                     "Este error puede ocurrir cuando:\n" +
+                     "• La derivada es cero en el método de Newton\n" +
+                     "• El denominador se hace cero en el método de la secante\n" +
+                     "• Hay una división por cero en la evaluación de la función";
+    }
+    // MathQuill/LaTeX parsing errors
+    else if (error.message.includes("MathQuill") || 
+             error.message.includes("LaTeX") || 
+             error.message.includes("latex")) {
+        userMessage = "Error al procesar la notación matemática:\n\n" +
+                     "Verifique que la expresión matemática cumpla con la sintaxis correcta.";
+    }
+    // Plot errors
+    else if (error.message.includes("gráfico") || 
+             error.message.includes("plot") || 
+             error.message.includes("plotting")) {
+        userMessage = "Error al generar el gráfico. Los resultados numéricos están disponibles si el cálculo fue exitoso.";
+    }
+    // Server communication errors
+    else if (error.message.includes("servidor") || 
+             error.message.includes("server") || 
+             error.message.includes("comunicación")) {
+        userMessage = "Error de comunicación con el servidor:\n\n" +
+                     "• Verifique su conexión a internet\n" +
+                     "• El servidor puede estar temporalmente no disponible\n" +
+                     "• Intente nuevamente en unos momentos";
+    }
+    // Default error message for uncategorized errors
+    else {
+        userMessage = "Error: " + (error.message || "Ha ocurrido un error inesperado.");
+    }
+    
+    this.showError(userMessage);
+}
 
+showError(message) {
+    this.elements.resultTable.innerHTML = "";
+    this.elements.plotHtmlContainer.innerHTML = "";
+    this.elements.resultsDiv.style.display = "none";
+    
+    // Remove any existing error alerts
+    document.querySelectorAll(".alert-danger").forEach(error => error.remove());
+    
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "alert alert-danger alert-dismissible fade show mt-3";
+    
+    // Process message for better display
+    const formattedMessage = message.replace(/\n/g, '<br>').replace(/•/g, '&bull; ');
+    
+    // Add icon for better visibility
+    errorDiv.innerHTML = `
+        <div class="d-flex align-items-start">
+            <div class="me-3">
+                <i class="fas fa-exclamation-triangle fs-3"></i>
+            </div>
+            <div>
+                <strong>${formattedMessage.split(':')[0]}</strong>
+                ${formattedMessage.includes(':') ? formattedMessage.split(':').slice(1).join(':') : ''}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+        </div>
+    `;
+    
+    this.elements.form.insertBefore(errorDiv, this.elements.form.firstChild);
+    
+    // Scroll to error message
+    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
     handleInitializationError(error) {
         console.error("Error de inicialización:", error);
         document.body.innerHTML = `
