@@ -1,6 +1,6 @@
 FROM python:3.9-slim
 
-WORKDIR /microservices/fixed_point/ .
+WORKDIR /microservices/trapecio/ .
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -13,4 +13,4 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "microservices.fixed_point.run:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "microservices.trapecio.run:app"]

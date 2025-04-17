@@ -1,9 +1,19 @@
 version: '3.8'
 
 services:
+
+  app:
+    build:
+      context: .
+      dockerfile: ./microservices/app/Dockerfile
+    ports:
+      - "4999:5000"
+    environment:
+      - FLASK_ENV=production
   bisection:
     build:
-      context: ./microservices/bisection/
+      context: .
+      dockerfile: ./microservices/bisection/Dockerfile
     ports:
       - "5001:5000"
     environment:
@@ -11,28 +21,32 @@ services:
 
   newton_raphson:
     build:
-      context: ./microservices/newton_raphson
+      context: .
+      dockerfile: ./microservices/newton_raphson/Dockerfile
     ports:
       - "5002:5000"
     environment:
       - FLASK_ENV=production
   secant:
     build:
-      context: ./microservices/secant
+      context: .
+      dockerfile: ./microservices/secant/Dockerfile
     ports:
       - "5003:5000"
     environment:
       - FLASK_ENV=production
   fixed_point:
     build:
-      context: ./microservices/fixed_point
+      context: .
+      dockerfile: ./microservices/fixed_point/Dockerfile
     ports:
       - "5004:5000"
     environment:
       - FLASK_ENV=production
   jacobi:
     build:
-      context: ./microservices/jacobi
+      context: .
+      dockerfile: ./microservices/jacobi/Dockerfile
     ports:
       - "5005:5000"
     environment:
@@ -40,13 +54,40 @@ services:
 
   gauss_seidel:
     build:
-      context: ./microservices/gauss_seidel
+      context: .
+      dockerfile: ./microservices/gauss_seidel/Dockerfile
     ports:
       - "5006:5000"
     environment:
       - FLASK_ENV=production
 
-# Red opcional para comunicación entre servicios
+  broyden:
+    build:
+      context: .
+      dockerfile: ./microservices/broyden/Dockerfile
+    ports:
+      - "5007:5000"
+    environment:
+      - FLASK_ENV=production
+
+  simpson:
+    build:
+      context: .
+      dockerfile: ./microservices/simpson/Dockerfile
+    ports:
+      - "5008:5000"
+    environment:
+      - FLASK_ENV=production
+
+  trapecio:
+    build:
+      context: .
+      dockerfile: ./microservices/trapecio/Dockerfile
+    ports:
+      - "5009:5000"
+    environment:
+      - FLASK_ENV=production
+
 networks:
   default:
     driver: bridge
