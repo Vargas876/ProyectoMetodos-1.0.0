@@ -560,7 +560,7 @@ class CalculatorApp {
             return;
         }
         try {
-            const response = await fetch("/find_valid_interval", {
+            const response = await fetch("http://localhost:5001/find_valid_interval", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ equation }),
@@ -624,6 +624,7 @@ class CalculatorApp {
 
     async sendCalculationRequest(endpoint, formData) {
         try {
+
             const response = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -643,15 +644,15 @@ class CalculatorApp {
 
     getEndpointForMethod(method) {
         const endpoints = {
-            bisection: "/bisection",
-            secant: "/secant",
-            newton: "/newton_raphson",
-            fixed_point: "/fixed_point",
-            jacobi: "/jacobi",
-            gauss_seidel: "/gauss_seidel",
-            broyden: "/broyden",
-            trapezoidal: "/trapezoidal",
-            simpson: "/simpson",
+            bisection: "http://localhost:5001/bisection",
+            secant: "http://localhost:5003/secant",
+            newton: "http://localhost:5002/newton_raphson",
+            fixed_point: "http://localhost:5004/fixed_point",
+            jacobi: "http://localhost:5005/jacobi",
+            gauss_seidel: "http://localhost:5006/gauss_seidel",
+            broyden: "http://localhost:5007/broyden",
+            trapezoidal: "http://localhost:5009/trapezoidal",
+            simpson: "http://localhost:5008/simpson",
         };
         return endpoints[method];
     }

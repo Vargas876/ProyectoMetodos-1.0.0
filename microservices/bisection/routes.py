@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template
 from .logic import bisection_controller
 import logging
+from microservices.app.util import equation as eq
 
 # Configuración del logger
 logger = logging.getLogger(__name__)
@@ -35,4 +36,4 @@ def find_valid_interval_route():
         return jsonify({'error': str(e)}), 400
     except Exception as e:
         logger.exception("Error inesperado al buscar el intervalo.")
-        return jsonify({'error': 'Ocurrió un error inesperado al buscar el intervalo.'}), 500
+        return jsonify({'error': 'Ocurrió un error inesperado al buscar el intervalo. Error:' + e}), 500

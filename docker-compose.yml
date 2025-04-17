@@ -8,6 +8,8 @@ services:
       dockerfile: ./microservices/app/Dockerfile
     ports:
       - "4999:5000"
+    networks:
+      - methods_network
     environment:
       - FLASK_ENV=production
   bisection:
@@ -16,6 +18,8 @@ services:
       dockerfile: ./microservices/bisection/Dockerfile
     ports:
       - "5001:5000"
+    networks:
+      - methods_network
     environment:
       - FLASK_ENV=production
 
@@ -25,6 +29,8 @@ services:
       dockerfile: ./microservices/newton_raphson/Dockerfile
     ports:
       - "5002:5000"
+    networks:
+      - methods_network
     environment:
       - FLASK_ENV=production
   secant:
@@ -33,6 +39,8 @@ services:
       dockerfile: ./microservices/secant/Dockerfile
     ports:
       - "5003:5000"
+    networks:
+      - methods_network
     environment:
       - FLASK_ENV=production
   fixed_point:
@@ -41,6 +49,8 @@ services:
       dockerfile: ./microservices/fixed_point/Dockerfile
     ports:
       - "5004:5000"
+    networks:
+      - methods_network
     environment:
       - FLASK_ENV=production
   jacobi:
@@ -49,6 +59,8 @@ services:
       dockerfile: ./microservices/jacobi/Dockerfile
     ports:
       - "5005:5000"
+    networks:
+      - methods_network
     environment:
       - FLASK_ENV=production
 
@@ -58,6 +70,8 @@ services:
       dockerfile: ./microservices/gauss_seidel/Dockerfile
     ports:
       - "5006:5000"
+    networks:
+      - methods_network
     environment:
       - FLASK_ENV=production
 
@@ -67,6 +81,8 @@ services:
       dockerfile: ./microservices/broyden/Dockerfile
     ports:
       - "5007:5000"
+    networks:
+      - methods_network
     environment:
       - FLASK_ENV=production
 
@@ -76,6 +92,8 @@ services:
       dockerfile: ./microservices/simpson/Dockerfile
     ports:
       - "5008:5000"
+    networks:
+      - methods_network
     environment:
       - FLASK_ENV=production
 
@@ -85,9 +103,11 @@ services:
       dockerfile: ./microservices/trapecio/Dockerfile
     ports:
       - "5009:5000"
+    networks:
+      - methods_network
     environment:
       - FLASK_ENV=production
 
 networks:
-  default:
+  methods_network:
     driver: bridge
