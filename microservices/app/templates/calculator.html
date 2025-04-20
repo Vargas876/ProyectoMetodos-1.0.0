@@ -60,11 +60,11 @@
                                     <option value="newton">Newton-Raphson</option>
                                     <option value="secant">Secante</option>
                                     <option value="fixed_point">Punto Fijo</option>
-                                    <!--  <option value="broyden">Broyden</option>-->
+                                    <option value="broyden">Broyden</option>
                                     <option value="jacobi">Jacobi</option>
                                     <option value="gauss_seidel">Gauss-Seidel</option>
-                                    <!--<option value="trapezoidal">Trapezoidal</option>-->
-                                    <!--<option value="simpson">Simpson</option>-->
+                                    <option value="trapezoidal">Trapezoidal</option>
+                                    <option value="simpson">Simpson</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -129,22 +129,6 @@
                                 el sistema.</small>
                         </div>
 
-                        <!-- Contenedor dinámico para ingresar ecuaciones -->
-                        <div id="equationsContainer" style="display: none;" class="mb-3">
-                            <label class="form-label">Ecuaciones del Sistema</label>
-                            <div id="equationsList">
-                                <!-- Las ecuaciones se agregarán dinámicamente aquí -->
-                                <div class="input-group mb-2 equation-input">
-                                    <span class="input-group-text">Ecuación 1:</span>
-                                    <div class="mathquill-field form-control" id="mathquill_equation_1"
-                                        aria-label="Ecuación 1"></div>
-                                    <input type="hidden" name="equations[]" id="equation_1">
-                                </div>
-                            </div>
-                            <button type="button" id="addEquationBtn" class="btn btn-secondary mt-2">Agregar
-                                Ecuación</button>
-                        </div>
-
                         <!-- Contenedor para las variables -->
                         <div id="variablesContainer" style="display: none;" class="mb-3">
                             <label class="form-label">Variables</label>
@@ -163,6 +147,30 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Contenedor dinámico para ingresar ecuaciones -->
+                        <div id="equationsContainer" style="display: none;" class="mb-3">
+                            <label class="form-label">Ecuaciones del Sistema</label>
+                            <div id="equationsList">
+                                <!-- Las ecuaciones se agregarán dinámicamente aquí -->
+                                <div class="input-group mb-2 equation-input">
+                                    <span class="input-group-text">Ecuación 1:</span>
+                                    <div class="mathquill-field form-control" id="mathquill_equation_1"
+                                        aria-label="Ecuación 1"></div>
+                                    <input type="hidden" name="equations[]" id="equation_1">
+                                    <button type="button" class="btn btn-danger removeEquationBtn">Eliminar</button>
+                                </div>
+                                <div class="input-group mb-2 equation-input">
+                                    <span class="input-group-text">Ecuación 2:</span>
+                                    <div class="mathquill-field form-control" id="mathquill_equation_2"
+                                        aria-label="Ecuación 2"></div>
+                                    <input type="hidden" name="equations[]" id="equation_2">
+                                    <button type="button" class="btn btn-danger removeEquationBtn">Eliminar</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        
 
                         <!-- Punto Inicial (para Sistemas) -->
                         <div class="mb-3" id="initialGuessSystem" style="display: none;">

@@ -1,3 +1,14 @@
+const examples = {
+    bisection: "x**2 - 4",
+    newton: "x**3 - 2*x - 5",
+    secant: "x**2-4*x-1",
+    fixed_point: ["(3/2)x+(2/3)x**2-(9/2)", "((27-9x)**(1/2))/2"],
+    jacobi: ["3x - (3/2)w = 1", "(-2/3)x+3y-3z=1", "3z-(3/2)w=1", "(-1/2)x+3w=1"],
+    gauss_seidel: ["3x - (3/2)w = 1", "(-2/3)x+3y-3z=1", "3z-(3/2)w=1", "(-1/2)x+3w=1"],
+    broyden: ["3x - (3/2)w = 1", "(-2/3)x+3y-3z=1", "3z-(3/2)w=1", "(-1/2)x+3w=1"],
+    trapezoidal: "x**2 - 4",
+    simpson: "x**2 - 4",
+};
 class CalculatorApp {
     constructor() {
         try {
@@ -31,7 +42,6 @@ class CalculatorApp {
                 secantInputs: this.getRequiredElement("secantInputs"),
                 systemInputs: this.getRequiredElement("systemInputs"),
                 equationsContainer: this.getRequiredElement("equationsContainer"),
-                addEquationBtn: this.getRequiredElement("addEquationBtn"),
                 variablesContainer: this.getRequiredElement("variablesContainer"),
                 resultsDiv: this.getRequiredElement("results"),
                 resultTable: this.getRequiredElement("resultTable"),
@@ -59,9 +69,11 @@ class CalculatorApp {
             throw new Error(`Error inicializando elementos: ${error.message}`);
         }
     }
+
+
     getActiveMathField() {
         return this.activeMathField;
-      }
+    }
       
 
     // Método que obtiene un elemento del DOM y lanza error si no se encuentra
@@ -143,7 +155,6 @@ class CalculatorApp {
             this.elements.methodSelect.addEventListener("change", this.handleMethodChange.bind(this));
             this.elements.findIntervalBtn.addEventListener("click", this.handleFindInterval.bind(this));
 
-            this.elements.addEquationBtn.addEventListener("click", this.addEquationField.bind(this));
 
             const numVariablesInput = this.elements.form.querySelector("#numVariables");
             if (numVariablesInput) {
@@ -301,18 +312,7 @@ class CalculatorApp {
         // Reinicializa o limpia el campo MathQuill según el método
         this.toggleMathQuill(selectedMethod);
 
-        // Ejemplo en MathQuill (puedes ajustar según prefieras)
-        const examples = {
-            bisection: "x**2 - 4",
-            newton: "x**3 - 2*x - 5",
-            secant: "x**2-4*x-1",
-            fixed_point: "",
-            jacobi: "x + y - 3",
-            gauss_seidel: "x + y - 3",
-            broyden: "x**2 + y**2 - 4, x**2 - y - 1",
-            trapezoidal: "x**2 - 4",
-            simpson: "x**2 - 4",
-        };
+        
         if (this.activeMathField && examples[selectedMethod] !== undefined) {
             this.activeMathField.latex(examples[selectedMethod]);
         } else if (this.activeMathField) {
@@ -394,62 +394,6 @@ class CalculatorApp {
           this.elements.mathInput.innerHTML = "";
         }
       }
-      
-
-
-    addEquationField() {
-        const selectedMethod = this.elements.methodSelect.value;
-        if (!["jacobi", "gauss_seidel", "broyden"].includes(selectedMethod)) {
-            this.showError("Solo se pueden agregar ecuaciones adicionales en métodos de sistemas de ecuaciones.");
-            return;
-        }
-        const numVariablesInput = this.elements.form.querySelector("#numVariables");
-        let numVariables = parseInt(numVariablesInput.value, 10);
-        numVariables += 1;
-        numVariablesInput.value = numVariables;
-        this.updateVariables();
-
-        const equationList = this.elements.equationsContainer.querySelector("#equationsList");
-        const currentEquations = equationList.querySelectorAll(".equation-input").length;
-        const newEquationIndex = currentEquations + 1;
-
-        const equationDiv = document.createElement("div");
-        equationDiv.className = "input-group mb-2 equation-input";
-        equationDiv.innerHTML = `
-        <span class="input-group-text">Ecuación ${newEquationIndex}:</span>
-        <div class="mathquill-field form-control" id="mathquill_equation_${newEquationIndex}"></div>
-        <input type="hidden" name="equations[]" id="equation_${newEquationIndex}">
-        <button type="button" class="btn btn-danger removeEquationBtn">Eliminar</button>
-      `;
-        equationList.appendChild(equationDiv);
-
-        const mathQuillDiv = equationDiv.querySelector(".mathquill-field");
-        const equationHiddenInput = equationDiv.querySelector(`#equation_${newEquationIndex}`);
-
-        const MQ = MathQuill.getInterface(2);
-        const mathField = MQ.MathField(mathQuillDiv, {
-            handlers: {
-                edit: () => {
-                    try {
-                        const latex = mathField.latex();
-                        equationHiddenInput.value = this.latexToJavaScript(latex);
-                    } catch (error) {
-                        this.showError("Error al procesar la ecuación matemática");
-                        console.error("Error en MathQuill handler:", error);
-                    }
-                },
-                focus: () => {
-                    this.activeMathField = mathField;
-                    currentActiveMathField = mathField;
-                    console.log(`Campo MathQuill enfocado: equation ${newEquationIndex}`);
-                },
-                
-                blur: () => { }
-            }
-        });
-        this.allMathFields.set(`equation_${newEquationIndex}`, mathField);
-        mathField.focus();
-    }
 
     updateVariables() {
         const numVariables = parseInt(this.elements.form.querySelector("#numVariables").value, 10);

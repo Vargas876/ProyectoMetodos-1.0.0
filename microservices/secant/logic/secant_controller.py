@@ -14,6 +14,7 @@ import json
 import sympy as sp
 import re
 import logging
+from microservices.app.util import equation as eq
 
 # Definir las transformaciones incluyendo 'convert_xor'
 transformations = (
