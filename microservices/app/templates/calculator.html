@@ -132,42 +132,13 @@
                         <!-- Contenedor para las variables -->
                         <div id="variablesContainer" style="display: none;" class="mb-3">
                             <label class="form-label">Variables</label>
-                            <div id="variablesList">
-                                <div class="input-group mb-2">
-                                    <span class="input-group-text">Variable 1:</span>
-                                    <input type="text" class="form-control" name="variables[]"
-                                        placeholder="Ingrese la variable 1" required pattern="[a-zA-Z]+"
-                                        aria-required="true">
-                                </div>
-                                <div class="input-group mb-2">
-                                    <span class="input-group-text">Variable 2:</span>
-                                    <input type="text" class="form-control" name="variables[]"
-                                        placeholder="Ingrese la variable 2" required pattern="[a-zA-Z]+"
-                                        aria-required="true">
-                                </div>
-                            </div>
+                            <div id="variablesList"></div>
                         </div>
 
                         <!-- Contenedor dinámico para ingresar ecuaciones -->
                         <div id="equationsContainer" style="display: none;" class="mb-3">
                             <label class="form-label">Ecuaciones del Sistema</label>
-                            <div id="equationsList">
-                                <!-- Las ecuaciones se agregarán dinámicamente aquí -->
-                                <div class="input-group mb-2 equation-input">
-                                    <span class="input-group-text">Ecuación 1:</span>
-                                    <div class="mathquill-field form-control" id="mathquill_equation_1"
-                                        aria-label="Ecuación 1"></div>
-                                    <input type="hidden" name="equations[]" id="equation_1">
-                                    <button type="button" class="btn btn-danger removeEquationBtn">Eliminar</button>
-                                </div>
-                                <div class="input-group mb-2 equation-input">
-                                    <span class="input-group-text">Ecuación 2:</span>
-                                    <div class="mathquill-field form-control" id="mathquill_equation_2"
-                                        aria-label="Ecuación 2"></div>
-                                    <input type="hidden" name="equations[]" id="equation_2">
-                                    <button type="button" class="btn btn-danger removeEquationBtn">Eliminar</button>
-                                </div>
-                            </div>
+                            <div id="equationsList"></div>
                         </div>
 
                         

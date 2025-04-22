@@ -311,8 +311,10 @@ class CalculatorApp {
 
         
         if (this.activeMathField && examples[selectedMethod] !== undefined) {
+
             if( selectedMethod === "fixed_point") {
                 this.activeMathField.latex(examples[selectedMethod][0]);
+                this.allMathFields.get("gFunctionInput").latex(examples[selectedMethod][1]);
             } else {
                 this.activeMathField.latex(examples[selectedMethod]);
             }
@@ -406,6 +408,7 @@ class CalculatorApp {
       }
 
     updateVariables() {
+        const methodSelected = document.querySelector("#method").value;
         const numVariables = parseInt(this.elements.form.querySelector("#numVariables").value, 10);
         const variablesList = this.elements.variablesContainer.querySelector("#variablesList");
         variablesList.innerHTML = "";
@@ -454,6 +457,7 @@ class CalculatorApp {
                     blur: () => { }
                 }
             });
+            mathField.latex(examples[methodSelected][i - 1]);
             this.allMathFields.set(`equation_${i}`, mathField);
         }
 
