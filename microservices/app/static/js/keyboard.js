@@ -675,24 +675,43 @@ class EnhancedCalculatorApp {
   /**
    * Convert LaTeX to JavaScript expression
    */
+//   latexToJavaScript(latex) {
+//     return latex
+//       .replace(/\\pi/g, "pi")
+//       .replace(/\\sqrt\{([^{}]+)\}/g, "sqrt($1)")
+//       .replace(/\\left|\\right/g, "")
+//       .replace(/\\cdot|\\times/g, "*")
+//       .replace(/\\div/g, "/")
+//       .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, "($1)/($2)")
+//       .replace(/\\sin/g, "sin")
+//       .replace(/\\cos/g, "cos")
+//       .replace(/\\tan/g, "tan")
+//       .replace(/\\cot/g, "cot")
+//       .replace(/\\sec/g, "sec")
+//       .replace(/\\csc/g, "csc")
+//       .replace(/\\ln/g, "ln")
+//       .replace(/\\log/g, "log");
+//   }
   latexToJavaScript(latex) {
-    return latex
-      .replace(/\\pi/g, "pi")
-      .replace(/\\sqrt\{([^{}]+)\}/g, "sqrt($1)")
-      .replace(/\\left|\\right/g, "")
-      .replace(/\\cdot|\\times/g, "*")
-      .replace(/\\div/g, "/")
-      .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, "($1)/($2)")
-      .replace(/\\sin/g, "sin")
-      .replace(/\\cos/g, "cos")
-      .replace(/\\tan/g, "tan")
-      .replace(/\\cot/g, "cot")
-      .replace(/\\sec/g, "sec")
-      .replace(/\\csc/g, "csc")
-      .replace(/\\ln/g, "ln")
-      .replace(/\\log/g, "log");
+    if (!latex) return '';
+    
+    // Conversión paso a paso
+    let jsExpr = latex
+      .replace(/(\d+)([a-zA-Z])/g, '$1*$2')       // 9x → 9*x
+      .replace(/([a-zA-Z])(\d+)/g, '$1*$2')       // x9 → x*9
+      .replace(/([a-zA-Z])(\()/g, '$1*$2')        // x( → x*(
+      .replace(/(\))([a-zA-Z])/g, '$1*$2')        // )x → )*x
+      .replace(/(\))(\()/g, '$1*$2')              // )( → )*(
+      .replace(/\\frac\{(.*?)\}\{(.*?)\}/g, '($1)/($2)')  // Fracciones
+      .replace(/\^/g, '**')                       // Exponentes
+      .replace(/\\sqrt\{(.*?)\}/g, 'Math.sqrt($1)') // Raíces cuadradas
+      .replace(/\\cdot/g, '*');                   // Multiplicación con punto
+
+    return jsExpr;
   }
 }
+
+
 
 // Initialize the app when the DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
