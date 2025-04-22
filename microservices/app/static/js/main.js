@@ -85,6 +85,7 @@ class CalculatorApp {
         return element;
     }
 
+    //NEVER GETS INSIDE
     // Inicializa MathQuill para los campos de ecuación y función g(x)
     initializeMathQuill() {
         try {
@@ -100,16 +101,12 @@ class CalculatorApp {
                         try {
                             const latex = gFunctionField.latex();
                             this.elements.gFunctionHidden.value = this.latexToJavaScript(latex);
+                            console.log("NIGGER")
                         } catch (error) {
                             this.showError("Error al procesar la función g(x)");
                             console.error("Error en MathQuill handler:", error);
                         }
                     },
-                    focus: () => {
-                        this.activeMathField = gFunctionField;
-                        console.log("Campo MathQuill enfocado: gFunctionInput");
-                    },
-                    blur: () => { }
                 },
             });
             this.allMathFields.set("gFunctionInput", gFunctionField);
@@ -309,12 +306,17 @@ class CalculatorApp {
             this.disableFields(["a_bisection", "b_bisection"]);
         }
 
-        // Reinicializa o limpia el campo MathQuill según el método
-        this.toggleMathQuill(selectedMethod);
+        // Reinicializa el campo MathQuill 
+        //this.toggleMathQuill(selectedMethod);
 
         
         if (this.activeMathField && examples[selectedMethod] !== undefined) {
-            this.activeMathField.latex(examples[selectedMethod]);
+            if( selectedMethod === "fixed_point") {
+                this.activeMathField.latex(examples[selectedMethod][0]);
+            } else {
+                this.activeMathField.latex(examples[selectedMethod]);
+            }
+            
         } else if (this.activeMathField) {
             this.activeMathField.latex("");
         }
@@ -347,51 +349,59 @@ class CalculatorApp {
         });
     }
 
+    //THIS METHOD IS TOTALLY TRASH AND MAKE DAMAGE TO THE APPLICATION PLEASE DONT USE IT
+    //THE REASON?: WHEN CHANGES THE METHOD FROM A LINEAR TO A NON LINEAR, IT CREATES ANOTHER INSTANCE
+    //THAT MEANS THAT THE COIDE IN keyboard.js IS LOST AND THE LOGIC TO MANAGE THE KEYEVENT CHANGES 
+    //WHICH DIFFICULTS THE LOGIC INTEGRAION, IN OTHER WORDS, THIS METHOS CREATES OTHER LOGIC TOTALLY DIFFERENT. 
     // Para métodos que requieren MathQuill, se inicializa o limpia según corresponda
     toggleMathQuill(selectedMethod) {
         if (["bisection", "newton", "secant", "fixed_point", "trapezoidal", "simpson"].includes(selectedMethod)) {
-          if (!this.mathField && this.elements.mathInput.offsetParent !== null) {
-            const MQ = MathQuill.getInterface(2);
-            this.mathField = MQ.MathField(this.elements.mathInput, {
-              handlers: {
-                edit: () => {
-                  try {
-                    const latex = this.mathField.latex();
-                    this.elements.equationHidden.value = this.latexToJavaScript(latex);
-                  } catch (error) {
-                    this.showError("Error al procesar la ecuación matemática");
-                    console.error("Error en MathQuill handler:", error);
-                  }
-                },
-              },
-            });
-            this.elements.mathInput.addEventListener("focus", () => {
-              this.activeMathField = this.mathField;
-            });
-            this.elements.mathInput.addEventListener("blur", () => {
-              setTimeout(() => {
-                if (!document.activeElement.classList.contains("mathquill-editable")) {
-                  this.activeMathField = null;
-                }
-              }, 100);
-            });
-            // Agregar listener para gFunctionInput usando la referencia correcta
-            this.elements.gFunctionInput.addEventListener("focus", () => {
-           
-              if (gf) {
-                this.activeMathField = gFunctionInput;
-                // También actualizamos la variable global usada por el teclado
-                currentActiveMathField = gFunctionInput;
-                console.log("Campo MathQuill enfocado: gFunctionInput (desde toggle)");
-              }
-            });
+            //Never gets here because the mathField is initialized already in keyboard.js 
+            //So if you want to manage the keyboard events, do it on keyboard.js method: Initialize Math Field
+            //Im not the dumbass nigger who put this here so dont blame me, thank u.
+        if (!this.mathField && this.elements.mathInput.offsetParent !== null) {
+            
+            // const MQ = MathQuill.getInterface(2);
+            // this.mathField = MQ.MathField(this.elements.mathInput, {
+            // handlers: {
+            //     edit: () => {
+            //     try {
+            //         const latex = this.mathField.latex();
+            //         this.elements.equationHidden.value = this.latexToJavaScript(latex);
+            //         console.log('NIGEGEGGGGEETTTRRRRRR')
+            //     } catch (error) {
+            //         this.showError("Error al procesar la ecuación matemática");
+            //         console.error("Error en MathQuill handler:", error);
+            //     }
+            //     },
+            // },
+            // });
+            // this.elements.mathInput.addEventListener("focus", () => {
+            // this.activeMathField = this.mathField;
+            // });
+            // this.elements.mathInput.addEventListener("blur", () => {
+            // setTimeout(() => {
+            //     if (!document.activeElement.classList.contains("mathquill-editable")) {
+            //     this.activeMathField = null;
+            //     }
+            // }, 100);
+            // });
+            // // Agregar listener para gFunctionInput usando la referencia correcta
+            // this.elements.gFunctionInput.addEventListener("focus", () => {
+        
+            // if (gf) {
+            //     this.activeMathField = gFunctionInput;
+            //     // También actualizamos la variable global usada por el teclado
+            //     currentActiveMathField = gFunctionInput;
+            //     console.log("Campo MathQuill enfocado: gFunctionInput (desde toggle)");
+            // }
+            // });
             // (Opcional) Puedes agregar un blur similar para gFunctionInput si lo requieres.
-          }
+        }
         } else if (["jacobi", "gauss_seidel", "broyden"].includes(selectedMethod)) {
-          if (this.mathField) {
-            this.mathField = null;
-          }
-          this.elements.mathInput.innerHTML = "";
+        if (this.mathField) {
+            //this.mathField.style.display = 'none';
+        }
         }
       }
 

@@ -163,6 +163,22 @@ class EnhancedCalculatorApp {
   
     if (shouldBeMathQuill) {
       console.log(`Initializing MathQuill for field: ${field.id}`);
+
+      const updateExamplesNoLineal = ( { newValue, field } ) => {
+        const methodSelected = document.querySelector("#method").value;
+        if( field.id === 'math-input' ) {
+          if (["bisection", "newton", "secant", "fixed_point", "trapezoidal", "simpson"].includes(methodSelected)) {
+            if ( methodSelected === "fixed_point") {
+              examples["fixed_point"][0] = newValue;
+            } else {
+              examples[methodSelected] = newValue
+            }
+          } 
+        } else if ( field.id === "gFunctionInput") {
+          examples["fixed_point"][1] = newValue;
+        }
+        
+      }
   
       // Initialize MathQuill for this field
       const mathQuillInstance = this.MQ.MathField(field, {
@@ -180,6 +196,7 @@ class EnhancedCalculatorApp {
               const latex = mathQuillInstance.latex();
               const parsedExpression = this.latexToJavaScript(latex);
               this.elements.equationHidden.value = parsedExpression;
+              updateExamplesNoLineal( {newValue:parsedExpression, field} );
               console.log(`Updated equation hidden with: ${parsedExpression}`);
             } 
             // Fix for gFunction - directly update without special logic
@@ -209,7 +226,7 @@ class EnhancedCalculatorApp {
           }
         }
       });
-      
+
       // Store reference to mathQuillInstance
       field.mathquillInstance = mathQuillInstance;
       
@@ -252,6 +269,7 @@ class EnhancedCalculatorApp {
    * Initialize all available MathQuill fields
    */
   initializeAllMathFields() {
+    
     console.log("Initializing keyboard focus management");
     
     // Find all eligible input fields
