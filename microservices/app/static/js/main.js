@@ -273,6 +273,7 @@ class CalculatorApp {
             this.disableFields(["a_bisection", "b_bisection"]);
             const variableInputs = this.elements.variablesContainer.querySelectorAll('input[name="variables[]"]');
             variableInputs.forEach((input) => (input.required = true));
+            this.updateVariables();
         } else if (["trapezoidal", "simpson"].includes(selectedMethod)) {
             this.elements.integrationInputs.style.display = "flex";
             this.elements.integrationInputs.querySelectorAll("input").forEach((input) => (input.required = true));
@@ -409,6 +410,7 @@ class CalculatorApp {
 
     updateVariables() {
         const methodSelected = document.querySelector("#method").value;
+        
         const numVariables = parseInt(this.elements.form.querySelector("#numVariables").value, 10);
         const variablesList = this.elements.variablesContainer.querySelector("#variablesList");
         variablesList.innerHTML = "";
@@ -432,7 +434,6 @@ class CalculatorApp {
           <span class="input-group-text">Ecuación ${i}:</span>
           <div class="mathquill-field form-control" id="mathquill_equation_${i}"></div>
           <input type="hidden" name="equations[]" id="equation_${i}">
-          <button type="button" class="btn btn-danger removeEquationBtn">Eliminar</button>
         `;
             equationsList.appendChild(equationDiv);
 
@@ -445,6 +446,7 @@ class CalculatorApp {
                         try {
                             const latex = mathField.latex();
                             equationHiddenInput.value = this.latexToJavaScript(latex);
+                            examples[methodSelected][i - 1] = mathField.latex();
                         } catch (error) {
                             this.showError("Error al procesar la ecuación matemática");
                             console.error("Error en MathQuill handler:", error);
