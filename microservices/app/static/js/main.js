@@ -196,7 +196,7 @@ class CalculatorApp {
 
         // Reiniciar la propiedad "required" en todos los inputs
         this.elements.form.querySelectorAll("input").forEach((input) => (input.required = false));
-
+    
         if (selectedMethod === "bisection") {
             this.elements.intervalInputs.style.display = "flex";
             this.elements.findIntervalBtn.style.display = "block";
@@ -211,6 +211,8 @@ class CalculatorApp {
                 "variablesContainer",
                 "initialGuessSystem",
                 "integrationInputs",
+                "eulerInputs",        // ← AGREGAR
+                "eulerMethodType",    // ← AGREGAR
             ]);
             this.elements.singleEquationInput.style.display = "block";
             this.enableFields(["a_bisection", "b_bisection"]);
@@ -227,6 +229,8 @@ class CalculatorApp {
                 "variablesContainer",
                 "initialGuessSystem",
                 "integrationInputs",
+                "eulerInputs",        // ← AGREGAR
+                "eulerMethodType",    // ← AGREGAR
             ]);
             this.elements.singleEquationInput.style.display = "block";
             this.disableFields(["a_bisection", "b_bisection"]);
@@ -243,6 +247,8 @@ class CalculatorApp {
                 "variablesContainer",
                 "initialGuessSystem",
                 "integrationInputs",
+                "eulerInputs",        // ← AGREGAR
+                "eulerMethodType",    // ← AGREGAR
             ]);
             this.elements.singleEquationInput.style.display = "block";
             this.disableFields(["a_bisection", "b_bisection"]);
@@ -259,10 +265,12 @@ class CalculatorApp {
                 "variablesContainer",
                 "initialGuessSystem",
                 "integrationInputs",
+                "eulerInputs",        // ← AGREGAR
+                "eulerMethodType",    // ← AGREGAR
             ]);
             this.elements.singleEquationInput.style.display = "block";
             this.disableFields(["a_bisection", "b_bisection"]);
-        } else if (["jacobi", "gauss_seidel"].includes(selectedMethod)) {
+        } else if (["jacobi", "gauss_seidel", "broyden"].includes(selectedMethod)) {
             this.elements.systemInputs.style.display = "block";
             this.elements.equationsContainer.style.display = "block";
             this.elements.variablesContainer.style.display = "block";
@@ -276,6 +284,8 @@ class CalculatorApp {
                 "fixedPointInputs",
                 "singleEquationInput",
                 "integrationInputs",
+                "eulerInputs",        // ← AGREGAR
+                "eulerMethodType",    // ← AGREGAR
             ]);
             this.disableFields(["a_bisection", "b_bisection"]);
             const variableInputs = this.elements.variablesContainer.querySelectorAll('input[name="variables[]"]');
@@ -294,10 +304,13 @@ class CalculatorApp {
                 "equationsContainer",
                 "variablesContainer",
                 "initialGuessSystem",
+                "eulerInputs",        // ← AGREGAR
+                "eulerMethodType",    // ← AGREGAR
             ]);
             this.elements.singleEquationInput.style.display = "block";
             this.disableFields(["a_bisection", "b_bisection"]);
-        }  else if (selectedMethod === "euler") {
+        } else if (selectedMethod === "euler") {
+            // Este bloque ya está correcto
             this.elements.eulerInputs.style.display = "flex";
             this.elements.eulerMethodType.style.display = "block";
             this.elements.eulerInputs.querySelectorAll("input").forEach((input) => (input.required = true));
@@ -315,7 +328,8 @@ class CalculatorApp {
             ]);
             this.elements.singleEquationInput.style.display = "block";
             this.disableFields(["a_bisection", "b_bisection"]);
-        }else {
+        } else {
+            // Este bloque ya está correcto con los campos de Euler
             this.hideFields([
                 "intervalInputs",
                 "findIntervalBtn",
@@ -327,13 +341,12 @@ class CalculatorApp {
                 "variablesContainer",
                 "initialGuessSystem",
                 "integrationInputs",
-                "eulerInputs",     
-                "eulerMethodType", 
+                "eulerInputs",        // ← Ya estaba agregado
+                "eulerMethodType",    // ← Ya estaba agregado
             ]);
             this.elements.singleEquationInput.style.display = "block";
             this.disableFields(["a_bisection", "b_bisection"]);
         }
-
         // Reinicializa el campo MathQuill 
         //this.toggleMathQuill(selectedMethod);
 
