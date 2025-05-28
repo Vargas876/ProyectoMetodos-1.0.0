@@ -5,9 +5,9 @@ const examples = {
     fixed_point: ["(3/2)x+(2/3)x**2-(9/2)", "((27-9x)**(1/2))/2"],
     jacobi: ["3x - (3/2)w = 1", "(-2/3)x+3y-3z=1", "3z-(3/2)w=1", "(-1/2)x+3w=1"],
     gauss_seidel: ["3x - (3/2)w = 1", "(-2/3)x+3y-3z=1", "3z-(3/2)w=1", "(-1/2)x+3w=1"],
-    broyden: ["3x - (3/2)w = 1", "(-2/3)x+3y-3z=1", "3z-(3/2)w=1", "(-1/2)x+3w=1"],
     trapezoidal: "x**2 - 4",
     simpson: "x**2 - 4",
+    euler: "x + y",
 };
 class CalculatorApp {
     constructor() {
@@ -63,6 +63,13 @@ class CalculatorApp {
                 // Los campos para el método secante (x₀ y x₁)
                 x0: this.getRequiredElement("x0"),
                 x1: this.getRequiredElement("x1"),
+                eulerInputs: this.getRequiredElement("eulerInputs"),
+                eulerMethodType: this.getRequiredElement("eulerMethodType"),
+                x0Euler: this.getRequiredElement("x0_euler"),
+                y0Euler: this.getRequiredElement("y0_euler"),
+                hEuler: this.getRequiredElement("h_euler"),
+                nEuler: this.getRequiredElement("n_euler"),
+                eulerType: this.getRequiredElement("euler_type"),
             };
             console.log("Elementos inicializados correctamente:", this.elements);
         } catch (error) {
@@ -255,7 +262,7 @@ class CalculatorApp {
             ]);
             this.elements.singleEquationInput.style.display = "block";
             this.disableFields(["a_bisection", "b_bisection"]);
-        } else if (["jacobi", "gauss_seidel", "broyden"].includes(selectedMethod)) {
+        } else if (["jacobi", "gauss_seidel"].includes(selectedMethod)) {
             this.elements.systemInputs.style.display = "block";
             this.elements.equationsContainer.style.display = "block";
             this.elements.variablesContainer.style.display = "block";
@@ -290,7 +297,25 @@ class CalculatorApp {
             ]);
             this.elements.singleEquationInput.style.display = "block";
             this.disableFields(["a_bisection", "b_bisection"]);
-        } else {
+        }  else if (selectedMethod === "euler") {
+            this.elements.eulerInputs.style.display = "flex";
+            this.elements.eulerMethodType.style.display = "block";
+            this.elements.eulerInputs.querySelectorAll("input").forEach((input) => (input.required = true));
+            this.hideFields([
+                "intervalInputs",
+                "findIntervalBtn",
+                "secantInputs",
+                "initialGuessInput",
+                "fixedPointInputs",
+                "systemInputs",
+                "equationsContainer",
+                "variablesContainer",
+                "initialGuessSystem",
+                "integrationInputs",
+            ]);
+            this.elements.singleEquationInput.style.display = "block";
+            this.disableFields(["a_bisection", "b_bisection"]);
+        }else {
             this.hideFields([
                 "intervalInputs",
                 "findIntervalBtn",
@@ -302,6 +327,8 @@ class CalculatorApp {
                 "variablesContainer",
                 "initialGuessSystem",
                 "integrationInputs",
+                "eulerInputs",     
+                "eulerMethodType", 
             ]);
             this.elements.singleEquationInput.style.display = "block";
             this.disableFields(["a_bisection", "b_bisection"]);
@@ -401,7 +428,7 @@ class CalculatorApp {
             // });
             // (Opcional) Puedes agregar un blur similar para gFunctionInput si lo requieres.
         }
-        } else if (["jacobi", "gauss_seidel", "broyden"].includes(selectedMethod)) {
+        } else if (["jacobi", "gauss_seidel"].includes(selectedMethod)) {
         if (this.mathField) {
             //this.mathField.style.display = 'none';
         }
@@ -610,9 +637,9 @@ class CalculatorApp {
             fixed_point: "http://localhost:5004/fixed_point",
             jacobi: "http://localhost:5005/jacobi",
             gauss_seidel: "http://localhost:5006/gauss_seidel",
-            broyden: "http://localhost:5007/broyden",
             trapezoidal: "http://localhost:5009/trapezoidal",
             simpson: "http://localhost:5008/simpson",
+            euler: "http://localhost:5010/euler",
         };
         return endpoints[method];
     }
@@ -630,20 +657,39 @@ class CalculatorApp {
                 if (response.plot_json) {
                     this.renderPlot(response.plot_json, method);
                 }
-            } else if (["jacobi", "gauss_seidel", "broyden"].includes(method)) {
-                 // *** Muestra la tabla principal de resultados de sistema
-                    if (response.solution) {
-                        this.displaySystemResults(response);
-                    }
-                    // *** Muestra la tabla de iteraciones (si existe iteration_history)
-                    if (response.iteration_history && response.iteration_history.length > 0) {
-                        // En este caso, pasamos también la solución (variables) para formatear las columnas
-                        this.displayIterationHistory(response.iteration_history, response.solution);
-                    }
-                    // *** Gráfica, si aplica
-                    if (response.plot_json) {
-                        this.renderPlot(response.plot_json, method);
-                    }
+            } else if (["jacobi", "gauss_seidel"].includes(method)) {
+                // *** Muestra la tabla principal de resultados de sistema
+                if (response.solution) {
+                    this.displaySystemResults(response);
+                }
+                // *** Muestra la tabla de iteraciones (si existe iteration_history)
+                if (response.iteration_history && response.iteration_history.length > 0) {
+                    // En este caso, pasamos también la solución (variables) para formatear las columnas
+                    this.displayIterationHistory(response.iteration_history, response.solution);
+                }
+                // *** Gráfica, si aplica
+                if (response.plot_json) {
+                    this.renderPlot(response.plot_json, method);
+                }
+            } else if (method === "euler") {
+                // *** AGREGAR ESTE BLOQUE PARA EULER ***
+                // Mostrar resultados específicos de Euler
+                if (response.final_point) {
+                    this.addResultRow(this.elements.resultTable, "Método", response.method || "Euler");
+                    this.addResultRow(this.elements.resultTable, "Convergió", response.converged ? "Sí" : "No");
+                    this.addResultRow(this.elements.resultTable, "Pasos realizados", response.steps);
+                    this.addResultRow(this.elements.resultTable, "Tamaño del paso", response.step_size);
+                    this.addResultRow(this.elements.resultTable, "Punto final X", response.final_point.x.toFixed(6));
+                    this.addResultRow(this.elements.resultTable, "Punto final Y", response.final_point.y.toFixed(6));
+                }
+                // Mostrar tabla de iteraciones para Euler
+                if (response.iteration_history && response.iteration_history.length > 0) {
+                    this.displayEulerIterationHistory(response.iteration_history);
+                }
+                // Mostrar gráfica
+                if (response.plot_json) {
+                    this.renderPlot(response.plot_json, method);
+                }
             } else {
                 if (response.root !== undefined) {
                     this.displayMainResults(response);
@@ -794,108 +840,236 @@ class CalculatorApp {
         return tbody;
     }
 
-   
-  // Enhanced error handling for handleError method
-    handleError(error) {
-        console.error("Error en la aplicación:", error);
-        let userMessage = "";
+    displayEulerIterationHistory(history) {
+        const table = document.createElement("table");
+        table.className = "table table-striped table-bordered mt-3";
         
-        // Organized category-based error detection
+        // Headers específicos para Euler
+        const headers = ["Iteración", "x", "y", "dy/dx", "x siguiente", "y siguiente", "Error"];
+        table.appendChild(this.createTableHeader(headers));
         
-        // Interval errors
-        if (error.message.includes("límite inferior") || 
-            error.message.includes("a debe ser menor") || 
-            error.message.includes("a >= b")) {
-            userMessage = "Error de intervalo: El límite inferior (a) debe ser menor que el superior (b).";
-        }
-        // Function sign change errors (bisection method)
-        else if (error.message.includes("no cambia de signo") || 
-                error.message.includes("no sign change") || 
-                error.message.includes("intervalo dado")) {
-            userMessage = "Error en el método de bisección: La función no cambia de signo en el intervalo dado.\n\n" + 
-                        "Posibles causas:\n" + 
-                        "• El intervalo contiene un número par de raíces\n" + 
-                        "• La función no tiene raíces reales en este intervalo\n\n" + 
-                        "Sugerencias: Visualice la función para identificar cruces con el eje X o pruebe con intervalos más pequeños.";
-        }
-        // Syntax errors in equations
-        else if (error.message.includes("sintaxis") || 
-                error.message.includes("syntax") || 
-                error.message.includes("ecuación") || 
-                error.message.includes("inválida")) {
-            userMessage = "Error de sintaxis: La ecuación ingresada contiene errores.\n\n" +
-                        "Verifique:\n" +
-                        "• Paréntesis balanceados\n" +
-                        "• Operadores matemáticos correctos\n" +
-                        "• Variables definidas adecuadamente";
-        }
-        // Convergence errors
-        else if (error.message.includes("converge") || 
-                error.message.includes("diverge")) {
-            userMessage = "Error de convergencia: El método no converge con los parámetros proporcionados.\n\n" +
-                        "Sugerencias:\n" +
-                        "• Aumente el número máximo de iteraciones\n" +
-                        "• Pruebe con otros valores iniciales\n" +
-                        "• Considere un método numérico diferente";
-        }
-        // Function definition errors (for g(x) in fixed point)
-        else if (error.message.includes("g(x)") || 
-                error.message.includes("gFunction")) {
-            userMessage = "Error en la definición de g(x): La función de punto fijo no es válida.\n\n" +
-                        "Verificar que:\n" +
-                        "• Contenga la variable 'x'\n" +
-                        "• Tenga una sintaxis correcta\n" +
-                        "• Cumpla los requisitos para convergencia de punto fijo";
-        }
-        // System of equations errors
-        else if (error.message.includes("sistema") || 
-                error.message.includes("variables") || 
-                error.message.includes("ecuaciones")) {
-            userMessage = "Error en el sistema de ecuaciones:\n\n" +
-                        "Verificar que:\n" +
-                        "• El número de ecuaciones sea igual al número de variables\n" +
-                        "• Las variables estén correctamente definidas\n" +
-                        "• El vector de valores iniciales tenga la dimensión correcta";
-        }
-        // Division by zero
-        else if (error.message.includes("división por cero") || 
-                error.message.includes("division by zero") || 
-                error.message.includes("divide by zero")) {
-            userMessage = "Error matemático: División por cero detectada.\n\n" +
-                        "Este error puede ocurrir cuando:\n" +
-                        "• La derivada es cero en el método de Newton\n" +
-                        "• El denominador se hace cero en el método de la secante\n" +
-                        "• Hay una división por cero en la evaluación de la función";
-        }
-        // MathQuill/LaTeX parsing errors
-        else if (error.message.includes("MathQuill") || 
-                error.message.includes("LaTeX") || 
-                error.message.includes("latex")) {
-            userMessage = "Error al procesar la notación matemática:\n\n" +
-                        "Verifique que la expresión matemática cumpla con la sintaxis correcta.";
-        }
-        // Plot errors
-        else if (error.message.includes("gráfico") || 
-                error.message.includes("plot") || 
-                error.message.includes("plotting")) {
-            userMessage = "Error al generar el gráfico. Los resultados numéricos están disponibles si el cálculo fue exitoso.";
-        }
-        // Server communication errors
-        else if (error.message.includes("servidor") || 
-                error.message.includes("server") || 
-                error.message.includes("comunicación")) {
-            userMessage = "Error de comunicación con el servidor:\n\n" +
-                        "• Verifique su conexión a internet\n" +
-                        "• El servidor puede estar temporalmente no disponible\n" +
-                        "• Intente nuevamente en unos momentos";
-        }
-        // Default error message for uncategorized errors
-        else {
-            userMessage = "Error: " + (error.message || "Ha ocurrido un error inesperado.");
-        }
+        // Body de la tabla
+        const tbody = document.createElement("tbody");
+        history.forEach((iter) => {
+            const row = document.createElement("tr");
+            
+            // Crear celdas
+            const cells = [
+                { text: iter.iteration, className: "text-center" },
+                { text: iter.x, className: "text-center" },
+                { text: iter.y, className: "text-center" },
+                { text: iter.slope, className: "text-center" },
+                { text: iter.x_next, className: "text-center" },
+                { text: iter.y_next, className: "text-center" },
+                { text: iter.error, className: "text-center" }
+            ];
+            
+            cells.forEach(cellData => {
+                const cell = document.createElement("td");
+                cell.textContent = cellData.text;
+                cell.className = cellData.className;
+                row.appendChild(cell);
+            });
+            
+            tbody.appendChild(row);
+        });
         
-        this.showError(userMessage);
+        table.appendChild(tbody);
+        this.elements.resultTable.appendChild(table);
     }
+  // Enhanced error handling for handleError method
+   // Enhanced error handling for handleError method
+handleError(error) {
+    console.error("Error en la aplicación:", error);
+    let userMessage = "";
+    
+    // Organized category-based error detection
+    
+    // Interval errors
+    if (error.message.includes("límite inferior") || 
+        error.message.includes("a debe ser menor") || 
+        error.message.includes("a >= b")) {
+        userMessage = "Error de intervalo: El límite inferior (a) debe ser menor que el superior (b).";
+    }
+    // Function sign change errors (bisection method)
+    else if (error.message.includes("no cambia de signo") || 
+            error.message.includes("no sign change") || 
+            error.message.includes("intervalo dado")) {
+        userMessage = "Error en el método de bisección: La función no cambia de signo en el intervalo dado.\n\n" + 
+                    "Posibles causas:\n" + 
+                    "• El intervalo contiene un número par de raíces\n" + 
+                    "• La función no tiene raíces reales en este intervalo\n\n" + 
+                    "Sugerencias: Visualice la función para identificar cruces con el eje X o pruebe con intervalos más pequeños.";
+    }
+    // Euler-specific errors: Differential equation errors
+    else if (error.message.includes("ecuación diferencial") || 
+            error.message.includes("dy/dx") ||
+            error.message.includes("EDO")) {
+        userMessage = "Error en la ecuación diferencial:\n\n" +
+                    "Verifique que:\n" +
+                    "• La ecuación esté en términos de 'x' e 'y'\n" +
+                    "• Use la sintaxis correcta: dy/dx = f(x,y)\n" +
+                    "• Las funciones matemáticas estén bien escritas\n" +
+                    "• No haya singularidades en el dominio de integración\n\n" +
+                    "Ejemplos válidos: 'x + y', 'x*y - 2', 'sin(x) + cos(y)'";
+    }
+    // Euler-specific errors: Initial conditions
+    else if (error.message.includes("valores iniciales") || 
+            error.message.includes("condiciones iniciales") ||
+            error.message.includes("x₀") || 
+            error.message.includes("y₀")) {
+        userMessage = "Error en las condiciones iniciales:\n\n" +
+                    "Verifique que:\n" +
+                    "• x₀ y y₀ sean números válidos\n" +
+                    "• Los valores iniciales sean apropiados para la ecuación\n" +
+                    "• No cause singularidades en el punto inicial\n\n" +
+                    "Ejemplo: Para dy/dx = x + y, use x₀ = 0, y₀ = 1";
+    }
+    // Euler-specific errors: Step size
+    else if (error.message.includes("tamaño del paso") || 
+            error.message.includes("paso h") ||
+            error.message.includes("step size") ||
+            error.message.includes("estabilidad")) {
+        userMessage = "Error en el tamaño del paso:\n\n" +
+                    "Problemas detectados:\n" +
+                    "• El paso h debe ser positivo y pequeño\n" +
+                    "• Pasos muy grandes (h > 1.0) causan inestabilidad\n" +
+                    "• Pasos muy pequeños (h < 0.001) pueden ser ineficientes\n\n" +
+                    "Recomendaciones:\n" +
+                    "• Use h entre 0.01 y 0.1 para la mayoría de problemas\n" +
+                    "• Para ecuaciones rígidas, use pasos más pequeños (h ≤ 0.01)";
+    }
+    // Euler-specific errors: Number of steps
+    else if (error.message.includes("número de pasos") ||
+            error.message.includes("pasos es muy grande")) {
+        userMessage = "Error en el número de pasos:\n\n" +
+                    "Restricciones:\n" +
+                    "• El número de pasos debe ser un entero positivo\n" +
+                    "• Máximo 1000 pasos por razones de rendimiento\n" +
+                    "• Mínimo 1 paso\n\n" +
+                    "Sugerencia: Para intervalos largos, ajuste el tamaño del paso en lugar de aumentar excesivamente el número de pasos.";
+    }
+    // Convergence errors (general)
+    else if (error.message.includes("converge") || 
+            error.message.includes("diverge") ||
+            error.message.includes("inestable")) {
+        userMessage = "Error de convergencia: El método no converge o es inestable.\n\n" +
+                    "Para ecuaciones diferenciales:\n" +
+                    "• Reduzca el tamaño del paso (h)\n" +
+                    "• Verifique las condiciones iniciales\n" +
+                    "• La ecuación puede ser numéricamente rígida\n\n" +
+                    "Para otros métodos:\n" +
+                    "• Aumente el número máximo de iteraciones\n" +
+                    "• Pruebe con otros valores iniciales\n" +
+                    "• Considere un método numérico diferente";
+    }
+    // Syntax errors in equations
+    else if (error.message.includes("sintaxis") || 
+            error.message.includes("syntax") || 
+            error.message.includes("ecuación") || 
+            error.message.includes("inválida")) {
+        userMessage = "Error de sintaxis: La ecuación ingresada contiene errores.\n\n" +
+                    "Verifique:\n" +
+                    "• Paréntesis balanceados\n" +
+                    "• Operadores matemáticos correctos\n" +
+                    "• Variables definidas adecuadamente\n" +
+                    "• Funciones escritas correctamente (sin, cos, exp, log, etc.)";
+    }
+    // Function definition errors (for g(x) in fixed point)
+    else if (error.message.includes("g(x)") || 
+            error.message.includes("gFunction")) {
+        userMessage = "Error en la definición de g(x): La función de punto fijo no es válida.\n\n" +
+                    "Verificar que:\n" +
+                    "• Contenga la variable 'x'\n" +
+                    "• Tenga una sintaxis correcta\n" +
+                    "• Cumpla los requisitos para convergencia de punto fijo";
+    }
+    // System of equations errors
+    else if (error.message.includes("sistema") || 
+            error.message.includes("variables") || 
+            error.message.includes("ecuaciones")) {
+        userMessage = "Error en el sistema de ecuaciones:\n\n" +
+                    "Verificar que:\n" +
+                    "• El número de ecuaciones sea igual al número de variables\n" +
+                    "• Las variables estén correctamente definidas\n" +
+                    "• El vector de valores iniciales tenga la dimensión correcta";
+    }
+    // Division by zero
+    else if (error.message.includes("división por cero") || 
+            error.message.includes("division by zero") || 
+            error.message.includes("divide by zero")) {
+        userMessage = "Error matemático: División por cero detectada.\n\n" +
+                    "Este error puede ocurrir cuando:\n" +
+                    "• La derivada es cero en el método de Newton\n" +
+                    "• El denominador se hace cero en el método de la secante\n" +
+                    "• Hay una división por cero en la evaluación de la función\n" +
+                    "• En ecuaciones diferenciales, f(x,y) no está definida en algún punto";
+    }
+    // Numerical overflow/underflow errors
+    else if (error.message.includes("overflow") || 
+            error.message.includes("underflow") ||
+            error.message.includes("infinito") ||
+            error.message.includes("infinity")) {
+        userMessage = "Error numérico: Los valores se vuelven demasiado grandes o pequeños.\n\n" +
+                    "Posibles causas:\n" +
+                    "• El método es inestable para estos parámetros\n" +
+                    "• El tamaño del paso es demasiado grande\n" +
+                    "• La función crece exponencialmente\n\n" +
+                    "Soluciones:\n" +
+                    "• Reduzca el tamaño del paso\n" +
+                    "• Ajuste las condiciones iniciales\n" +
+                    "• Verifique que la ecuación esté bien planteada";
+    }
+    // MathQuill/LaTeX parsing errors
+    else if (error.message.includes("MathQuill") || 
+            error.message.includes("LaTeX") || 
+            error.message.includes("latex")) {
+        userMessage = "Error al procesar la notación matemática:\n\n" +
+                    "Verifique que la expresión matemática cumpla con la sintaxis correcta.";
+    }
+    // Plot errors
+    else if (error.message.includes("gráfico") || 
+            error.message.includes("plot") || 
+            error.message.includes("plotting")) {
+        userMessage = "Error al generar el gráfico.\n\n" +
+                    "Los resultados numéricos están disponibles si el cálculo fue exitoso.\n" +
+                    "El error de visualización no afecta la precisión de los cálculos.";
+    }
+    // Server communication errors
+    else if (error.message.includes("servidor") || 
+            error.message.includes("server") || 
+            error.message.includes("comunicación") ||
+            error.message.includes("network") ||
+            error.message.includes("fetch")) {
+        userMessage = "Error de comunicación con el servidor:\n\n" +
+                    "• Verifique su conexión a internet\n" +
+                    "• El servidor puede estar temporalmente no disponible\n" +
+                    "• Intente nuevamente en unos momentos\n\n" +
+                    "Si el problema persiste, contacte al administrador del sistema.";
+    }
+    // Validation errors (parameter ranges)
+    else if (error.message.includes("debe estar entre") ||
+            error.message.includes("debe ser mayor") ||
+            error.message.includes("debe ser menor")) {
+        userMessage = "Error de validación de parámetros:\n\n" +
+                    error.message + "\n\n" +
+                    "Verifique que todos los valores estén dentro de los rangos permitidos.";
+    }
+    // Default error message for uncategorized errors
+    else {
+        userMessage = "Error: " + (error.message || "Ha ocurrido un error inesperado.");
+        
+        // Add context-specific help for common scenarios
+        if (error.message.includes("required") || error.message.includes("requerido")) {
+            userMessage += "\n\nVerifique que todos los campos obligatorios estén completos.";
+        }
+        if (error.message.includes("invalid") || error.message.includes("inválido")) {
+            userMessage += "\n\nRevise la sintaxis y formato de los datos ingresados.";
+        }
+    }
+    
+    this.showError(userMessage);
+}
 
     showError(message) {
         this.elements.resultTable.innerHTML = "";
@@ -956,7 +1130,7 @@ class CalculatorApp {
         }
         let formData = { method, iterations };
     
-        if (["jacobi", "gauss_seidel", "broyden"].includes(method)) {
+        if (["jacobi", "gauss_seidel"].includes(method)) {
             const equations = Array.from(this.elements.form.querySelectorAll('input[name="equations[]"]')).map((input) =>
                 input.value.trim()
             );
@@ -1006,12 +1180,48 @@ class CalculatorApp {
             formData.a = a;
             formData.b = b;
             formData.n = n;
+        } else if (method === "euler") {
+            // Validación específica para el método de Euler
+            const equation = this.elements.equationHidden.value.trim();
+            const x0 = parseFloat(this.elements.x0Euler.value);
+            const y0 = parseFloat(this.elements.y0Euler.value);
+            const h = parseFloat(this.elements.hEuler.value);
+            const n = parseInt(this.elements.nEuler.value, 10);
+            const method_type = this.elements.eulerType.value;
+            
+            if (!equation) {
+                throw new Error("La ecuación diferencial es requerida");
+            }
+            if (isNaN(x0) || isNaN(y0)) {
+                throw new Error("Los valores iniciales x₀ y y₀ deben ser números válidos");
+            }
+            if (isNaN(h) || h <= 0) {
+                throw new Error("El tamaño del paso h debe ser un número positivo");
+            }
+            if (h > 1.0) {
+                throw new Error("El tamaño del paso es muy grande, use h ≤ 1.0 para estabilidad");
+            }
+            if (isNaN(n) || n <= 0) {
+                throw new Error("El número de pasos debe ser un entero positivo");
+            }
+            if (n > 1000) {
+                throw new Error("El número de pasos es muy grande, use n ≤ 1000");
+            }
+            
+            formData.equation = equation;
+            formData.x0 = x0;
+            formData.y0 = y0;
+            formData.h = h;
+            formData.n = n;
+            formData.method_type = method_type;
         } else {
+            // Para otros métodos (bisection, newton, secant, fixed_point)
             const equation = this.elements.equationHidden.value.trim();
             if (!equation) {
                 throw new Error("La ecuación es requerida");
             }
             formData.equation = equation;
+            
             if (method === "bisection") {
                 const a = parseFloat(this.elements.intervalInputs.querySelector("#a_bisection").value);
                 const b = parseFloat(this.elements.intervalInputs.querySelector("#b_bisection").value);
@@ -1046,8 +1256,7 @@ class CalculatorApp {
                         throw new Error("La función g(x) es requerida para el método de Punto Fijo");
                     }
                     
-                    // Aquí solo validamos sintaxis básica, no usamos eval para evitar problemas de seguridad
-                    // La validación real se hará en el servidor
+                    // Validación básica de sintaxis
                     try {
                         // Verificar paréntesis balanceados
                         let parenCount = 0;
@@ -1058,7 +1267,7 @@ class CalculatorApp {
                         }
                         if (parenCount !== 0) throw new Error("Paréntesis desbalanceados");
                         
-                        // Asegurar que 'x' esté presente (requisito mínimo para una función de punto fijo)
+                        // Asegurar que 'x' esté presente
                         if (!gFunction.includes('x')) {
                             throw new Error("La función g(x) debe contener la variable 'x'");
                         }
@@ -1070,18 +1279,21 @@ class CalculatorApp {
                 }
             }
         }
-        if (["jacobi", "gauss_seidel", "broyden"].includes(method)) {
+        
+        // Validación de paréntesis para los diferentes métodos
+        if (["jacobi", "gauss_seidel"].includes(method)) {
             for (let i = 1; i <= formData.variables.length; i++) {
                 this.validateParentheses(formData.equations[i - 1]);
             }
         } else if (
-            ["bisection", "secant", "newton", "fixed_point", "trapezoidal", "simpson"].includes(method)
+            ["bisection", "secant", "newton", "fixed_point", "trapezoidal", "simpson", "euler"].includes(method)
         ) {
             this.validateParentheses(formData.equation);
             if (method === "fixed_point") {
                 this.validateParentheses(formData.gFunction);
             }
         }
+        
         return formData;
     }
 

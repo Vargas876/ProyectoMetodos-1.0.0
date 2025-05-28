@@ -60,11 +60,11 @@
                                     <option value="newton">Newton-Raphson</option>
                                     <option value="secant">Secante</option>
                                     <option value="fixed_point">Punto Fijo</option>
-                                    <option value="broyden">Broyden</option>
                                     <option value="jacobi">Jacobi</option>
                                     <option value="gauss_seidel">Gauss-Seidel</option>
                                     <option value="trapezoidal">Trapezoidal</option>
                                     <option value="simpson">Simpson</option>
+                                    <option value="euler">Euler</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -166,7 +166,35 @@
                             style="display: none;">
                             Encontrar Intervalo Válido
                         </button>
+                        <!-- Agregar después de los campos existentes -->
+                        <!-- Para el método de Euler -->
+                        <div class="row mb-3" id="eulerInputs" style="display: none;">
+                            <div class="col-md-3">
+                                <label for="x0_euler" class="form-label">x₀ (inicial)</label>
+                                <input type="number" class="form-control" id="x0_euler" name="x0_euler" step="any">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="y0_euler" class="form-label">y₀ (inicial)</label>
+                                <input type="number" class="form-control" id="y0_euler" name="y0_euler" step="any">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="h_euler" class="form-label">Paso (h)</label>
+                                <input type="number" class="form-control" id="h_euler" name="h_euler" step="any" value="0.1">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="n_euler" class="form-label">Número de pasos</label>
+                                <input type="number" class="form-control" id="n_euler" name="n_euler" min="1" value="10">
+                            </div>
+                        </div>
 
+                        <!-- Tipo de método de Euler -->
+                        <div class="mb-3" id="eulerMethodType" style="display: none;">
+                            <label for="euler_type" class="form-label">Tipo de Euler</label>
+                            <select class="form-select" id="euler_type" name="euler_type">
+                                <option value="basic">Euler Básico</option>
+                                <option value="improved">Euler Mejorado</option>
+                            </select>
+                        </div>
                         <!-- Botón de Envío del Formulario -->
                         <div class="mt-4">
                             <button type="submit" class="btn btn-primary w-100">Calcular</button>

@@ -75,12 +75,12 @@ services:
     environment:
       - FLASK_ENV=production
 
-  broyden:
+  euler:
     build:
       context: .
-      dockerfile: ./microservices/broyden/Dockerfile
+      dockerfile: ./microservices/euler/Dockerfile
     ports:
-      - "5007:5000"
+      - "5010:5000"
     networks:
       - methods_network
     environment:
