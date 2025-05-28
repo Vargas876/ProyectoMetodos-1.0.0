@@ -714,6 +714,7 @@ class CalculatorApp {
                     this.renderPlot(response.plot_json, method);
                 }
             }
+         
             this.elements.resultsDiv.style.display = "block";
         } catch (error) {
             this.showError(`Error al mostrar resultados: ${error.message}`);
@@ -807,58 +808,88 @@ class CalculatorApp {
         const tbody = document.createElement("tbody");
         iterations.forEach((iter) => {
             const row = document.createElement("tr");
-            const cells = [];
+            
+            // Celda de iteración
             const iterCell = document.createElement("td");
             iterCell.textContent = iter.iteration;
             iterCell.className = "text-center";
-            cells.push(iterCell);
-
+            iterCell.setAttribute("data-label", "Iteración"); // ✅
+            row.appendChild(iterCell);
+    
             if (solution && typeof solution === "object" && !Array.isArray(solution)) {
-                iter.x.forEach((val) => {
+                // Para sistemas de ecuaciones (Jacobi, Gauss-Seidel)
+                iter.x.forEach((val, index) => {
                     const valCell = document.createElement("td");
                     valCell.textContent = val.toFixed(6);
                     valCell.className = "text-center";
-                    cells.push(valCell);
+                    valCell.setAttribute("data-label", `Variable ${index + 1}`); // ✅
+                    row.appendChild(valCell);
                 });
+                
                 const errorCell = document.createElement("td");
                 errorCell.textContent = iter.error !== undefined ? iter.error.toFixed(6) : "-";
                 errorCell.className = "text-center";
-                cells.push(errorCell);
+                errorCell.setAttribute("data-label", "Error"); // ✅
+                row.appendChild(errorCell);
+                
             } else if (Array.isArray(solution)) {
+                // Para métodos de integración (Trapezoidal, Simpson)
                 const areaCell = document.createElement("td");
                 areaCell.textContent = iter.area !== undefined ? iter.area.toFixed(6) : "-";
                 areaCell.className = "text-center";
-                cells.push(areaCell);
+                areaCell.setAttribute("data-label", "Área Parcial"); // ✅
+                row.appendChild(areaCell);
+                
                 const errorCell = document.createElement("td");
                 errorCell.textContent = iter.error !== undefined ? iter.error.toFixed(6) : "-";
                 errorCell.className = "text-center";
-                cells.push(errorCell);
+                errorCell.setAttribute("data-label", "Error"); // ✅
+                row.appendChild(errorCell);
+                
             } else {
+                // Para métodos de una variable (Bisección, Newton, Secante, etc.)
                 const xCell = document.createElement("td");
                 xCell.textContent = iter.x.toFixed(6);
                 xCell.className = "text-center";
-                cells.push(xCell);
+                xCell.setAttribute("data-label", "x"); // ✅
+                row.appendChild(xCell);
+                
                 const fxCell = document.createElement("td");
                 fxCell.textContent = iter.fx !== undefined ? iter.fx.toFixed(6) : "-";
                 fxCell.className = "text-center";
-                cells.push(fxCell);
+                fxCell.setAttribute("data-label", "f(x)"); // ✅
+                row.appendChild(fxCell);
+                
                 const errorCell = document.createElement("td");
                 errorCell.textContent = iter.error !== undefined ? iter.error.toFixed(6) : "-";
                 errorCell.className = "text-center";
-                cells.push(errorCell);
+                errorCell.setAttribute("data-label", "Error"); // ✅
+                row.appendChild(errorCell);
             }
-            cells.forEach((cell) => row.appendChild(cell));
+            
             tbody.appendChild(row);
         });
         return tbody;
     }
 
     displayEulerIterationHistory(history) {
+        // Crear título para la tabla de iteraciones
+        const iterationTitle = document.createElement("h5");
+        iterationTitle.textContent = "Historial de Iteraciones";
+        iterationTitle.style.marginTop = "var(--spacing-large)";
+        iterationTitle.style.marginBottom = "var(--spacing-medium)";
+        iterationTitle.style.color = "var(--color-text-light)";
+        this.elements.resultTable.appendChild(iterationTitle);
+        
+        // Crear contenedor con scroll
+        const tableContainer = document.createElement("div");
+        tableContainer.className = "table-container";
+        
         const table = document.createElement("table");
-        table.className = "table table-striped table-bordered mt-3";
+        table.className = "table table-striped table-bordered iteration-table";
         
         // Headers específicos para Euler
-        const headers = ["Iteración", "x", "y", "dy/dx", "x siguiente", "y siguiente", "Error"];
+        const headers = ["Iter.", "x", "y", "dy/dx", "x₊₁", "y₊₁", "Error"];
         table.appendChild(this.createTableHeader(headers));
         
         // Body de la tabla
@@ -866,15 +897,15 @@ class CalculatorApp {
         history.forEach((iter) => {
             const row = document.createElement("tr");
             
-            // Crear celdas
+            // Crear celdas con mejor formato
             const cells = [
-                { text: iter.iteration, className: "text-center" },
-                { text: iter.x, className: "text-center" },
-                { text: iter.y, className: "text-center" },
-                { text: iter.slope, className: "text-center" },
-                { text: iter.x_next, className: "text-center" },
-                { text: iter.y_next, className: "text-center" },
-                { text: iter.error, className: "text-center" }
+                { text: iter.iteration, className: "text-center fw-bold" },
+                { text: Number(iter.x).toFixed(3), className: "text-center" },
+                { text: Number(iter.y).toFixed(6), className: "text-center" },
+                { text: Number(iter.slope).toFixed(6), className: "text-center" },
+                { text: Number(iter.x_next).toFixed(3), className: "text-center" },
+                { text: Number(iter.y_next).toFixed(6), className: "text-center" },
+                { text: Number(iter.error).toFixed(6), className: "text-center text-muted" }
             ];
             
             cells.forEach(cellData => {
@@ -888,7 +919,8 @@ class CalculatorApp {
         });
         
         table.appendChild(tbody);
-        this.elements.resultTable.appendChild(table);
+        tableContainer.appendChild(table);
+        this.elements.resultTable.appendChild(tableContainer);
     }
   // Enhanced error handling for handleError method
    // Enhanced error handling for handleError method
@@ -1389,15 +1421,21 @@ handleError(error) {
         const row = document.createElement("tr");
         const labelCell = document.createElement("td");
         const valueCell = document.createElement("td");
-
+    
         labelCell.innerHTML = label;
         valueCell.innerHTML = value;
         labelCell.className = "fw-bold";
-
+        
+        // Añadir clase para tabla principal
+        if (table === this.elements.resultTable) {
+            table.className = "results-table main-results-table";
+        }
+    
         row.appendChild(labelCell);
         row.appendChild(valueCell);
         table.appendChild(row);
     }
+   
 
     displayResults(result) {
         this.elements.resultTable.innerHTML = "";
